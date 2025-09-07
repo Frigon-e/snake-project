@@ -50,7 +50,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-neutral-50">
       <Header
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}

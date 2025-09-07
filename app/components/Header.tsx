@@ -9,7 +9,7 @@ interface HeaderProps {
 
 export default function Header({ searchTerm, setSearchTerm, selectedCategory, setSelectedCategory }: HeaderProps) {
   return (
-    <header className="bg-gray-800 text-white p-4">
+    <header className="bg-neutral-800 text-white p-4">
       <nav className="container mx-auto flex justify-between items-center">
         <Link to="/" className="text-xl font-bold">Exotic Pets</Link>
         <div className="flex items-center space-x-4">

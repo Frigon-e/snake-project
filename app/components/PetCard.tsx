@@ -23,10 +23,10 @@ const PetCard: React.FC<PetCardProps> = ({ pet }) => {
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
           <CardTitle className="text-lg">{pet.name}</CardTitle>
-          <span className="text-xl font-bold text-orange-600">${pet.price}</span>
+          <span className="text-xl font-bold text-secondary-dark">${pet.price}</span>
         </div>
-        <p className="text-stone-500 italic text-sm mb-3">{pet.scientificName}</p>
-        <div className="space-y-1 text-xs text-stone-500">
+        <p className="text-neutral-500 italic text-sm mb-3">{pet.scientificName}</p>
+        <div className="space-y-1 text-xs text-neutral-500">
           <div className="flex items-center space-x-1">
             <MapPin className="w-3 h-3" />
             <span>Origin: {pet.origin}</span>

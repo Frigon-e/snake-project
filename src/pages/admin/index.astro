@@ -1,0 +1,23 @@
+---
+// src/pages/admin/index.astro
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { createDb } from '../../../db/client';
+import { snakes, inquiries } from '../../../db/schema';
+import { count } from 'drizzle-orm';
+
+const db = createDb(Astro.locals.runtime.env.DB);
+const [{ snakeCount }] = await db.select({ snakeCount: count() }).from(snakes);
+const [{ inquiryCount }] = await db.select({ inquiryCount: count() }).from(inquiries);
+---
+<AdminLayout title="Dashboard">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-surface-container rounded p-6">
+      <p class="text-on-surface-variant text-xs uppercase tracking-widest font-medium">Snakes</p>
+      <p class="text-on-surface text-4xl font-noto-serif mt-2">{snakeCount}</p>
+    </div>
+    <div class="bg-surface-container rounded p-6">
+      <p class="text-on-surface-variant text-xs uppercase tracking-widest font-medium">Inquiries</p>
+      <p class="text-on-surface text-4xl font-noto-serif mt-2">{inquiryCount}</p>
+    </div>
+  </div>
+</AdminLayout>

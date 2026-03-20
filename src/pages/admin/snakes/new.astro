@@ -1,0 +1,53 @@
+---
+// src/pages/admin/snakes/new.astro
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import FormField from '../../../../components/ui/FormField.astro';
+import Input from '../../../../components/ui/Input.astro';
+import Button from '../../../../components/ui/Button.astro';
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.createSnake);
+if (result && !result.error) {
+  return Astro.redirect('/admin/snakes');
+}
+const fieldErrors = result?.error?.fields ?? {};
+---
+<AdminLayout title="New Snake">
+  <div class="max-w-xl">
+    <form method="POST" action={actions.createSnake} class="flex flex-col gap-6">
+      <FormField label="Name" name="name" required error={fieldErrors.name?.[0]}>
+        <Input name="name" required error={fieldErrors.name?.[0]} />
+      </FormField>
+      <FormField label="Slug (URL)" name="slug" required error={fieldErrors.slug?.[0]}>
+        <Input name="slug" placeholder="e.g. banana-pastel-2025" required error={fieldErrors.slug?.[0]} />
+      </FormField>
+      <FormField label="Species" name="species" required error={fieldErrors.species?.[0]}>
+        <Input name="species" required error={fieldErrors.species?.[0]} />
+      </FormField>
+      <FormField label="Description" name="description">
+        <textarea
+          name="description"
+          rows="4"
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded focus:outline-none focus:border-primary/50 resize-none"
+        />
+      </FormField>
+      <FormField label="Price (cents, e.g. 50000 = $500)" name="priceInCents">
+        <Input name="priceInCents" type="number" placeholder="0" />
+      </FormField>
+      <div class="flex gap-6">
+        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
+          <input type="checkbox" name="available" value="true" class="accent-primary" />
+          Available for purchase
+        </label>
+        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
+          <input type="checkbox" name="featured" value="true" class="accent-primary" />
+          Featured on homepage
+        </label>
+      </div>
+      <div class="flex gap-4">
+        <Button type="submit" variant="primary">Create Snake</Button>
+        <Button href="/admin/snakes" variant="ghost">Cancel</Button>
+      </div>
+    </form>
+  </div>
+</AdminLayout>

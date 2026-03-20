@@ -1,0 +1,99 @@
+---
+// src/pages/admin/snakes/[id]/edit.astro
+// [id] uses the internal UUID — links from admin snake list use snake.id
+import AdminLayout from '../../../../../layouts/AdminLayout.astro';
+import FormField from '../../../../../components/ui/FormField.astro';
+import Input from '../../../../../components/ui/Input.astro';
+import Button from '../../../../../components/ui/Button.astro';
+import Chip from '../../../../../components/ui/Chip.astro';
+import { actions } from 'astro:actions';
+import { createDb } from '../../../../../db/client';
+import { snakes, traitChips } from '../../../../../db/schema';
+import { eq } from 'drizzle-orm';
+
+const { id } = Astro.params;
+const db = createDb(Astro.locals.runtime.env.DB);
+const [snake] = await db.select().from(snakes).where(eq(snakes.id, id!));
+if (!snake) return Astro.redirect('/admin/snakes');
+
+const traits = await db.select().from(traitChips).where(eq(traitChips.snakeId, snake.id));
+
+const updateResult = Astro.getActionResult(actions.updateSnake);
+if (updateResult && !updateResult.error) {
+  return Astro.redirect('/admin/snakes');
+}
+const fieldErrors = updateResult?.error?.fields ?? {};
+---
+<AdminLayout title={`Edit: ${snake.name}`}>
+  <div class="max-w-xl flex flex-col gap-12">
+    <!-- Snake edit form -->
+    <form method="POST" action={actions.updateSnake} class="flex flex-col gap-6">
+      <input type="hidden" name="id" value={snake.id} />
+      <FormField label="Name" name="name" required error={fieldErrors.name?.[0]}>
+        <Input name="name" required value={snake.name} error={fieldErrors.name?.[0]} />
+      </FormField>
+      <FormField label="Slug" name="slug" required error={fieldErrors.slug?.[0]}>
+        <Input name="slug" required value={snake.slug} error={fieldErrors.slug?.[0]} />
+      </FormField>
+      <FormField label="Species" name="species" required error={fieldErrors.species?.[0]}>
+        <Input name="species" required value={snake.species} error={fieldErrors.species?.[0]} />
+      </FormField>
+      <FormField label="Description" name="description">
+        <textarea
+          name="description"
+          rows="4"
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded focus:outline-none focus:border-primary/50 resize-none"
+        >{snake.description}</textarea>
+      </FormField>
+      <FormField label="Price (cents)" name="priceInCents">
+        <Input name="priceInCents" type="number" value={String(snake.priceInCents)} />
+      </FormField>
+      <div class="flex gap-6">
+        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
+          <input type="checkbox" name="available" value="true" checked={snake.available} class="accent-primary" />
+          Available
+        </label>
+        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
+          <input type="checkbox" name="featured" value="true" checked={snake.featured} class="accent-primary" />
+          Featured
+        </label>
+      </div>
+      <div class="flex gap-4">
+        <Button type="submit" variant="primary">Save Changes</Button>
+        <Button href="/admin/snakes" variant="ghost">Cancel</Button>
+      </div>
+    </form>
+
+    <!-- Trait chip manager -->
+    <div>
+      <h2 class="font-noto-serif text-on-surface text-xl mb-6">Genetic Traits</h2>
+      {traits.length > 0 && (
+        <div class="flex flex-wrap gap-2 mb-6">
+          {traits.map(t => (
+            <div class="flex items-center gap-1.5">
+              <Chip type={t.type}>{t.label}</Chip>
+              <form method="POST" action={actions.deleteTrait} class="inline">
+                <input type="hidden" name="id" value={t.id} />
+                <button type="submit" class="text-red-400 text-xs hover:underline leading-none">×</button>
+              </form>
+            </div>
+          ))}
+        </div>
+      )}
+      <form method="POST" action={actions.addTrait} class="flex gap-3 items-end flex-wrap">
+        <input type="hidden" name="snakeId" value={snake.id} />
+        <FormField label="Trait label" name="label">
+          <Input name="label" placeholder="e.g. Banana" />
+        </FormField>
+        <FormField label="Type" name="type">
+          <select name="type" class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded focus:outline-none focus:border-primary/50">
+            <option value="dominant">Dominant</option>
+            <option value="recessive">Recessive</option>
+            <option value="codominant">Codominant</option>
+          </select>
+        </FormField>
+        <Button type="submit" variant="ghost">Add Trait</Button>
+      </form>
+    </div>
+  </div>
+</AdminLayout>

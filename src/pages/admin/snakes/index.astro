@@ -1,0 +1,61 @@
+---
+// src/pages/admin/snakes/index.astro
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import Button from '../../../../components/ui/Button.astro';
+import Badge from '../../../../components/ui/Badge.astro';
+import { createDb } from '../../../../db/client';
+import { snakes } from '../../../../db/schema';
+import { actions } from 'astro:actions';
+
+const db = createDb(Astro.locals.runtime.env.DB);
+const allSnakes = await db.select().from(snakes).orderBy(snakes.createdAt);
+---
+<AdminLayout title="Snakes">
+  <div slot="admin-header-actions">
+    <Button href="/admin/snakes/new" variant="primary">Add Snake</Button>
+  </div>
+  <div class="bg-surface-container rounded overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-surface-container-high">
+        <tr>
+          <th class="text-left px-6 py-4 text-on-surface-variant text-xs uppercase tracking-widest font-medium">Name</th>
+          <th class="text-left px-6 py-4 text-on-surface-variant text-xs uppercase tracking-widest font-medium">Species</th>
+          <th class="text-left px-6 py-4 text-on-surface-variant text-xs uppercase tracking-widest font-medium">Price</th>
+          <th class="text-left px-6 py-4 text-on-surface-variant text-xs uppercase tracking-widest font-medium">Status</th>
+          <th class="px-6 py-4"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {allSnakes.map(snake => (
+          <tr class="border-t border-outline-variant/10 hover:bg-surface-container-high/50 transition-colors">
+            <td class="px-6 py-4 text-on-surface font-noto-serif">{snake.name}</td>
+            <td class="px-6 py-4 text-on-surface-variant">{snake.species}</td>
+            <td class="px-6 py-4 text-on-surface">
+              {snake.priceInCents > 0 ? `$${(snake.priceInCents / 100).toLocaleString()}` : '—'}
+            </td>
+            <td class="px-6 py-4">
+              <Badge variant={snake.available ? 'available' : 'sold'}>
+                {snake.available ? 'Available' : 'Sold'}
+              </Badge>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3 justify-end">
+                <a href={`/admin/snakes/${snake.id}/edit`} class="text-primary text-xs hover:underline">Edit</a>
+                <form method="POST" action={actions.deleteSnake}>
+                  <input type="hidden" name="id" value={snake.id} />
+                  <button type="submit" class="text-red-400 text-xs hover:underline"
+                    onclick="return confirm('Delete this snake?')">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    {allSnakes.length === 0 && (
+      <p class="text-center text-on-surface-variant py-12 text-sm">No snakes yet. Add one above.</p>
+    )}
+  </div>
+</AdminLayout>

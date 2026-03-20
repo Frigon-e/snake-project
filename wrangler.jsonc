@@ -1,0 +1,23 @@
+{
+  "name": "serpents-edge",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "./dist/_worker.js",
+  "assets": { "directory": "./dist" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "serpents-edge-db",
+      "database_id": "REPLACE_WITH_YOUR_D1_ID"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ASSETS_BUCKET",
+      "bucket_name": "serpents-edge-assets"
+    }
+  ],
+  "vars": {
+    "CLERK_PUBLISHABLE_KEY": "pk_test_REPLACE_ME"
+  }
+}

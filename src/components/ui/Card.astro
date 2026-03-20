@@ -1,0 +1,9 @@
+---
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+---
+<div class={`bg-surface-container-low rounded hover:bg-surface-container-high transition-colors ${className}`}>
+  <slot />
+</div>

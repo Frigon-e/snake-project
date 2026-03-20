@@ -1,0 +1,14 @@
+---
+interface Props {
+  variant?: 'available' | 'sold' | 'featured';
+}
+const { variant = 'available' } = Astro.props;
+const variants = {
+  available: 'bg-primary/20 text-primary',
+  sold: 'bg-surface-container-highest text-on-surface-variant',
+  featured: 'bg-tertiary/20 text-tertiary',
+};
+---
+<span class={`inline-flex items-center px-2 py-0.5 rounded text-xs uppercase tracking-widest font-medium ${variants[variant]}`}>
+  <slot />
+</span>

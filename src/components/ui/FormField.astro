@@ -1,0 +1,16 @@
+---
+interface Props {
+  label: string;
+  name: string;
+  required?: boolean;
+  error?: string;
+}
+const { label, name, required, error } = Astro.props;
+---
+<div class="flex flex-col gap-1.5">
+  <label for={name} class="text-xs uppercase tracking-widest text-on-surface-variant font-medium">
+    {label}{required && <span class="text-tertiary ml-1">*</span>}
+  </label>
+  <slot />
+  {error && <p class="text-red-400 text-xs">{error}</p>}
+</div>

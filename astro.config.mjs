@@ -14,6 +14,4 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  // experimental.fonts is available in Astro 5.7+ — enable when upgrading
-  // experimental: { fonts: [...] }
 });

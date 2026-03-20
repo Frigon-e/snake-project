@@ -1,17 +1,19 @@
-// @ts-check
-
-import mdx from '@astrojs/mdx';
-import sitemap from '@astrojs/sitemap';
+// astro.config.mjs
 import { defineConfig } from 'astro/config';
-
+import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
+import clerk from '@clerk/astro';
 
-// https://astro.build/config
 export default defineConfig({
-  site: 'https://example.com',
-  integrations: [mdx(), sitemap()],
-
+  output: 'server',
+  adapter: cloudflare({
+    imageService: 'cloudflare',
+    platformProxy: { enabled: true },
+  }),
+  integrations: [clerk()],
   vite: {
     plugins: [tailwindcss()],
   },
+  // experimental.fonts is available in Astro 5.7+ — enable when upgrading
+  // experimental: { fonts: [...] }
 });

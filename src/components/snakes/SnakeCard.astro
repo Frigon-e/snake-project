@@ -1,0 +1,49 @@
+---
+// src/components/snakes/SnakeCard.astro
+import Badge from '../ui/Badge.astro';
+import Chip from '../ui/Chip.astro';
+import type { Snake, TraitChip } from '../../db/schema';
+
+interface Props {
+  snake: Snake & { traits?: TraitChip[] };
+}
+const { snake } = Astro.props;
+const imageUrl = snake.primaryImageKey
+  ? `/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`
+  : '/placeholder-snake.jpg';
+---
+<article class="bg-surface-container-low rounded overflow-hidden hover:bg-surface-container-high transition-colors group">
+  <div class="aspect-[4/3] overflow-hidden bg-surface-container-lowest">
+    <img
+      src={imageUrl}
+      alt={snake.name}
+      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+  <div class="p-5 flex flex-col gap-3">
+    <div class="flex items-start justify-between gap-2">
+      <h3 class="font-noto-serif text-on-surface text-lg leading-snug">{snake.name}</h3>
+      <Badge variant={snake.available ? 'available' : 'sold'}>
+        {snake.available ? 'Available' : 'Sold'}
+      </Badge>
+    </div>
+    <p class="text-on-surface-variant text-xs uppercase tracking-widest">{snake.species}</p>
+    {snake.traits && snake.traits.length > 0 && (
+      <div class="flex flex-wrap gap-1.5">
+        {snake.traits.map(t => (
+          <Chip type={t.type}>{t.label}</Chip>
+        ))}
+      </div>
+    )}
+    <div class="flex items-center justify-between mt-2">
+      <span class="font-inter text-on-surface text-base">
+        {snake.priceInCents > 0 ? `$${(snake.priceInCents / 100).toLocaleString()}` : 'Price on request'}
+      </span>
+      <a href={`/snakes/${snake.slug}`} class="text-xs text-primary hover:text-primary/80 transition-colors">
+        View specimen →
+      </a>
+    </div>
+  </div>
+</article>

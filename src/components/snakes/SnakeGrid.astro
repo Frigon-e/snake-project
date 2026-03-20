@@ -1,0 +1,16 @@
+---
+// src/components/snakes/SnakeGrid.astro
+import SnakeCard from './SnakeCard.astro';
+import type { Snake, TraitChip } from '../../db/schema';
+
+interface Props {
+  snakes: (Snake & { traits?: TraitChip[] })[];
+}
+const { snakes } = Astro.props;
+---
+{snakes.length === 0
+  ? <p class="text-on-surface-variant text-center py-24">No specimens available at this time.</p>
+  : <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {snakes.map(snake => <SnakeCard snake={snake} />)}
+    </div>
+}

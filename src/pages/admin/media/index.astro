@@ -1,0 +1,45 @@
+---
+// src/pages/admin/media/index.astro
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import Button from '../../../components/ui/Button.astro';
+import { r2Key } from '../../../lib/r2';
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const file = formData.get('file') as File | null;
+  if (file && file.size > 0) {
+    const key = r2Key(file.name);
+    await Astro.locals.runtime.env.ASSETS_BUCKET.put(key, await file.arrayBuffer(), {
+      httpMetadata: { contentType: file.type },
+    });
+    return Astro.redirect(`/admin/media?uploaded=${encodeURIComponent(key)}`);
+  }
+}
+
+const uploaded = new URL(Astro.request.url).searchParams.get('uploaded');
+---
+<AdminLayout title="Media">
+  {uploaded && (
+    <div class="mb-6 p-4 bg-primary/10 border border-primary/30 rounded text-sm">
+      <p class="text-primary font-medium">Upload successful.</p>
+      <p class="text-on-surface-variant text-xs mt-1 font-mono break-all">Key: {uploaded}</p>
+      <p class="text-on-surface-variant text-xs mt-1">Use this key when assigning an image to a snake.</p>
+    </div>
+  )}
+  <div class="max-w-lg">
+    <form method="POST" enctype="multipart/form-data" class="flex flex-col gap-6">
+      <div class="flex flex-col gap-1.5">
+        <label for="file" class="text-xs uppercase tracking-widest text-on-surface-variant font-medium">Select Image</label>
+        <input
+          id="file"
+          type="file"
+          name="file"
+          accept="image/*"
+          required
+          class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded file:mr-4 file:py-1 file:px-3 file:rounded file:text-xs file:bg-surface-container-high file:text-on-surface file:border-0 file:cursor-pointer"
+        />
+      </div>
+      <Button type="submit" variant="primary">Upload to R2</Button>
+    </form>
+  </div>
+</AdminLayout>

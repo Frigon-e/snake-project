@@ -1,0 +1,49 @@
+---
+// src/pages/snakes/[slug].astro
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/layout/Header.astro';
+import Footer from '../../components/layout/Footer.astro';
+import Badge from '../../components/ui/Badge.astro';
+import Chip from '../../components/ui/Chip.astro';
+import Button from '../../components/ui/Button.astro';
+import { createDb } from '../../db/client';
+import { snakes, traitChips } from '../../db/schema';
+import { eq } from 'drizzle-orm';
+
+const { slug } = Astro.params;
+const db = createDb(Astro.locals.runtime.env.DB);
+
+const [snake] = await db.select().from(snakes).where(eq(snakes.slug, slug!));
+if (!snake) return Astro.redirect('/snakes');
+
+const traits = await db.select().from(traitChips).where(eq(traitChips.snakeId, snake.id));
+const imageUrl = snake.primaryImageKey
+  ? `/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`
+  : '/placeholder-snake.jpg';
+---
+<BaseLayout title={snake.name} description={snake.description}>
+  <Header slot="header" />
+  <div class="max-w-5xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-16">
+    <div class="aspect-square bg-surface-container-lowest rounded overflow-hidden">
+      <img src={imageUrl} alt={snake.name} class="w-full h-full object-cover" />
+    </div>
+    <div class="flex flex-col gap-6">
+      <Badge variant={snake.available ? 'available' : 'sold'}>
+        {snake.available ? 'Available' : 'Sold'}
+      </Badge>
+      <h1 class="font-noto-serif text-on-surface text-4xl">{snake.name}</h1>
+      <p class="text-on-surface-variant text-xs uppercase tracking-widest">{snake.species}</p>
+      {traits.length > 0 && (
+        <div class="flex flex-wrap gap-2">
+          {traits.map(t => <Chip type={t.type}>{t.label}</Chip>)}
+        </div>
+      )}
+      <p class="text-on-surface-variant text-sm leading-relaxed">{snake.description}</p>
+      <p class="text-on-surface text-2xl font-inter">
+        {snake.priceInCents > 0 ? `$${(snake.priceInCents / 100).toLocaleString()}` : 'Price on request'}
+      </p>
+      {snake.available && <Button href="#contact" variant="tertiary">Reserve This Specimen</Button>}
+    </div>
+  </div>
+  <Footer slot="footer" />
+</BaseLayout>

@@ -1,0 +1,27 @@
+---
+// src/pages/snakes/index.astro
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/layout/Header.astro';
+import Footer from '../../components/layout/Footer.astro';
+import SnakeGrid from '../../components/snakes/SnakeGrid.astro';
+import { createDb } from '../../db/client';
+import { snakes, traitChips } from '../../db/schema';
+import { eq } from 'drizzle-orm';
+
+const db = createDb(Astro.locals.runtime.env.DB);
+const allSnakes = await db.select().from(snakes).orderBy(snakes.createdAt);
+const snakesWithTraits = await Promise.all(
+  allSnakes.map(async s => ({
+    ...s,
+    traits: await db.select().from(traitChips).where(eq(traitChips.snakeId, s.id)),
+  }))
+);
+---
+<BaseLayout title="Collection">
+  <Header slot="header" />
+  <section class="max-w-7xl mx-auto px-6 py-24">
+    <h1 class="font-noto-serif text-on-surface text-4xl mb-12">The Collection</h1>
+    <SnakeGrid snakes={snakesWithTraits} />
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

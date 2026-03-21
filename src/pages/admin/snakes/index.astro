@@ -1,10 +1,10 @@
 ---
 // src/pages/admin/snakes/index.astro
-import AdminLayout from '../../../../layouts/AdminLayout.astro';
-import Button from '../../../../components/ui/Button.astro';
-import Badge from '../../../../components/ui/Badge.astro';
-import { createDb } from '../../../../db/client';
-import { snakes } from '../../../../db/schema';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import Button from '../../../components/ui/Button.astro';
+import Badge from '../../../components/ui/Badge.astro';
+import { createDb } from '../../../db/client';
+import { snakes } from '../../../db/schema';
 import { actions } from 'astro:actions';
 
 const db = createDb(Astro.locals.runtime.env.DB);

@@ -1,8 +1,8 @@
 ---
 // src/pages/admin/index.astro
-import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { createDb } from '../../../db/client';
-import { snakes, inquiries } from '../../../db/schema';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { createDb } from '../../db/client';
+import { snakes, inquiries } from '../../db/schema';
 import { count } from 'drizzle-orm';
 
 const db = createDb(Astro.locals.runtime.env.DB);

@@ -2,8 +2,7 @@
   "name": "serpents-edge",
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "./dist/_worker.js",
-  "assets": { "directory": "./dist" },
+  "assets": { "directory": "./dist/client" },
   "d1_databases": [
     {
       "binding": "DB",

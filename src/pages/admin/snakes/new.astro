@@ -1,16 +1,16 @@
 ---
 // src/pages/admin/snakes/new.astro
-import AdminLayout from '../../../../layouts/AdminLayout.astro';
-import FormField from '../../../../components/ui/FormField.astro';
-import Input from '../../../../components/ui/Input.astro';
-import Button from '../../../../components/ui/Button.astro';
-import { actions } from 'astro:actions';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import FormField from '../../../components/ui/FormField.astro';
+import Input from '../../../components/ui/Input.astro';
+import Button from '../../../components/ui/Button.astro';
+import { actions, isInputError } from 'astro:actions';
 
 const result = Astro.getActionResult(actions.createSnake);
 if (result && !result.error) {
   return Astro.redirect('/admin/snakes');
 }
-const fieldErrors = result?.error?.fields ?? {};
+const fieldErrors = result?.error && isInputError(result.error) ? result.error.fields : {};
 ---
 <AdminLayout title="New Snake">
   <div class="max-w-xl">

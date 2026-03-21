@@ -13,7 +13,7 @@ const { name, type = 'text', placeholder, required, value, error, class: classNa
 <input
   id={name}
   name={name}
-  type={type}
+  type={type as astroHTML.JSX.HTMLInputTypeAttribute}
   placeholder={placeholder}
   required={required}
   value={value}

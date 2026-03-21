@@ -1,14 +1,14 @@
 ---
 // src/pages/admin/snakes/[id]/edit.astro
 // [id] uses the internal UUID — links from admin snake list use snake.id
-import AdminLayout from '../../../../../layouts/AdminLayout.astro';
-import FormField from '../../../../../components/ui/FormField.astro';
-import Input from '../../../../../components/ui/Input.astro';
-import Button from '../../../../../components/ui/Button.astro';
-import Chip from '../../../../../components/ui/Chip.astro';
-import { actions } from 'astro:actions';
-import { createDb } from '../../../../../db/client';
-import { snakes, traitChips } from '../../../../../db/schema';
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import FormField from '../../../../components/ui/FormField.astro';
+import Input from '../../../../components/ui/Input.astro';
+import Button from '../../../../components/ui/Button.astro';
+import Chip from '../../../../components/ui/Chip.astro';
+import { actions, isInputError } from 'astro:actions';
+import { createDb } from '../../../../db/client';
+import { snakes, traitChips } from '../../../../db/schema';
 import { eq } from 'drizzle-orm';
 
 const { id } = Astro.params;
@@ -22,7 +22,7 @@ const updateResult = Astro.getActionResult(actions.updateSnake);
 if (updateResult && !updateResult.error) {
   return Astro.redirect('/admin/snakes');
 }
-const fieldErrors = updateResult?.error?.fields ?? {};
+const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? updateResult.error.fields : {};
 ---
 <AdminLayout title={`Edit: ${snake.name}`}>
   <div class="max-w-xl flex flex-col gap-12">

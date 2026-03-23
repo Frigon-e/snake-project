@@ -8,7 +8,10 @@ import { createDb } from '../../db/client';
 import { snakes, traitChips } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 
-const db = createDb(Astro.locals.runtime.env.DB);
+import { env } from 'cloudflare:workers';
+import type { D1Database } from '@cloudflare/workers-types';
+
+const db = createDb((env as unknown as { DB: D1Database }).DB);
 const allSnakes = await db.select().from(snakes).orderBy(snakes.createdAt);
 const snakesWithTraits = await Promise.all(
   allSnakes.map(async s => ({

@@ -9,7 +9,10 @@ import { createDb } from '../db/client';
 import { snakes, traitChips } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
-const db = createDb(Astro.locals.runtime.env.DB);
+import { env } from 'cloudflare:workers';
+import type { D1Database } from '@cloudflare/workers-types';
+
+const db = createDb((env as unknown as { DB: D1Database }).DB);
 const featuredSnakes = await db.select().from(snakes).where(eq(snakes.featured, true)).limit(6);
 const snakesWithTraits = await Promise.all(
   featuredSnakes.map(async snake => ({

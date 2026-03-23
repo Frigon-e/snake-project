@@ -9,9 +9,11 @@ import Button from '../../components/ui/Button.astro';
 import { createDb } from '../../db/client';
 import { snakes, traitChips } from '../../db/schema';
 import { eq } from 'drizzle-orm';
+import { env } from 'cloudflare:workers';
+import type { D1Database } from '@cloudflare/workers-types';
 
 const { slug } = Astro.params;
-const db = createDb(Astro.locals.runtime.env.DB);
+const db = createDb((env as unknown as { DB: D1Database }).DB);
 
 const [snake] = await db.select().from(snakes).where(eq(snakes.slug, slug!));
 if (!snake) return Astro.redirect('/snakes');
@@ -19,12 +21,12 @@ if (!snake) return Astro.redirect('/snakes');
 const traits = await db.select().from(traitChips).where(eq(traitChips.snakeId, snake.id));
 const imageUrl = snake.primaryImageKey
   ? `/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`
-  : '/placeholder-snake.jpg';
+  : '/placeholder-snake.svg';
 ---
 <BaseLayout title={snake.name} description={snake.description}>
   <Header slot="header" />
   <div class="max-w-5xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-16">
-    <div class="aspect-square bg-surface-container-lowest rounded overflow-hidden">
+    <div class="aspect-square bg-surface-container-lowest rounded overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
       <img src={imageUrl} alt={snake.name} class="w-full h-full object-cover" />
     </div>
     <div class="flex flex-col gap-6">
@@ -32,7 +34,7 @@ const imageUrl = snake.primaryImageKey
         {snake.available ? 'Available' : 'Sold'}
       </Badge>
       <h1 class="font-noto-serif text-on-surface text-4xl">{snake.name}</h1>
-      <p class="text-on-surface-variant text-xs uppercase tracking-widest">{snake.species}</p>
+      <p class="text-primary text-xs uppercase tracking-widest">{snake.species}</p>
       {traits.length > 0 && (
         <div class="flex flex-wrap gap-2">
           {traits.map(t => <Chip type={t.type}>{t.label}</Chip>)}

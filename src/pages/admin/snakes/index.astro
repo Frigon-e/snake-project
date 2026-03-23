@@ -7,7 +7,10 @@ import { createDb } from '../../../db/client';
 import { snakes } from '../../../db/schema';
 import { actions } from 'astro:actions';
 
-const db = createDb(Astro.locals.runtime.env.DB);
+import { env } from 'cloudflare:workers';
+import type { D1Database } from '@cloudflare/workers-types';
+
+const db = createDb((env as unknown as { DB: D1Database }).DB);
 const allSnakes = await db.select().from(snakes).orderBy(snakes.createdAt);
 ---
 <AdminLayout title="Snakes">

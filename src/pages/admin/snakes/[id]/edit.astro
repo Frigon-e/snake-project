@@ -10,9 +10,11 @@ import { actions, isInputError } from 'astro:actions';
 import { createDb } from '../../../../db/client';
 import { snakes, traitChips } from '../../../../db/schema';
 import { eq } from 'drizzle-orm';
+import { env } from 'cloudflare:workers';
+import type { D1Database } from '@cloudflare/workers-types';
 
 const { id } = Astro.params;
-const db = createDb(Astro.locals.runtime.env.DB);
+const db = createDb((env as unknown as { DB: D1Database }).DB);
 const [snake] = await db.select().from(snakes).where(eq(snakes.id, id!));
 if (!snake) return Astro.redirect('/admin/snakes');
 
@@ -42,7 +44,7 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
         <textarea
           name="description"
           rows="4"
-          class="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded focus:outline-none focus:border-primary/50 resize-none"
+          class="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded focus:outline-none focus:shadow-[0_0_8px_rgba(158,209,189,0.3)] focus:border-primary/50 resize-none"
         >{snake.description}</textarea>
       </FormField>
       <FormField label="Price (cents)" name="priceInCents">

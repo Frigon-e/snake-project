@@ -7,7 +7,8 @@
     {
       "binding": "DB",
       "database_name": "serpents-edge-db",
-      "database_id": "REPLACE_WITH_YOUR_D1_ID"
+      "database_id": "REPLACE_WITH_YOUR_D1_ID",
+      "migrations_dir": "src/db/migrations"
     }
   ],
   "r2_buckets": [
@@ -17,6 +18,6 @@
     }
   ],
   "vars": {
-    "CLERK_PUBLISHABLE_KEY": "pk_test_REPLACE_ME"
+    "CLERK_PUBLISHABLE_KEY": "pk_test_ZWxlY3RyaWMtcXVldHphbC04My5jbGVyay5hY2NvdW50cy5kZXYk"
   }
 }

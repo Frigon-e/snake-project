@@ -3,13 +3,15 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import Button from '../../../components/ui/Button.astro';
 import { r2Key } from '../../../lib/r2';
+import { env } from 'cloudflare:workers';
+import type { R2Bucket } from '@cloudflare/workers-types';
 
 if (Astro.request.method === 'POST') {
   const formData = await Astro.request.formData();
   const file = formData.get('file') as File | null;
   if (file && file.size > 0) {
     const key = r2Key(file.name);
-    await Astro.locals.runtime.env.ASSETS_BUCKET.put(key, await file.arrayBuffer(), {
+    await (env as unknown as { ASSETS_BUCKET: R2Bucket }).ASSETS_BUCKET.put(key, await file.arrayBuffer(), {
       httpMetadata: { contentType: file.type },
     });
     return Astro.redirect(`/admin/media?uploaded=${encodeURIComponent(key)}`);

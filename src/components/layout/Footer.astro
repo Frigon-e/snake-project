@@ -1,14 +1,26 @@
 ---
-// src/components/Footer.astro
+// src/components/layout/Footer.astro
 ---
-<footer class="bg-surface-container-low mt-24">
-  <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
-    <p class="font-noto-serif text-on-surface-variant text-sm">
-      © {new Date().getFullYear()} The Serpent's Edge
-    </p>
-    <nav class="flex gap-8 text-xs text-on-surface-variant uppercase tracking-widest">
-      <a href="/snakes" class="hover:text-primary transition-colors">Collection</a>
-      <a href="/#contact" class="hover:text-primary transition-colors">Contact</a>
-    </nav>
+<footer class="bg-surface-container-low">
+  <div class="max-w-[1280px] mx-auto px-8 py-12 flex items-start justify-between gap-8">
+    <div class="flex flex-col gap-2">
+      <p class="font-noto-serif text-on-surface font-bold text-xl">The Serpent's Edge</p>
+      <p class="text-on-surface-variant text-xs tracking-[0.1em] uppercase">
+        &copy; {new Date().getFullYear()} All rights reserved
+      </p>
+    </div>
+    <div class="flex gap-12">
+      <div class="flex flex-col gap-2">
+        <p class="text-on-surface-variant text-xs uppercase tracking-[0.1em] font-semibold mb-1">Pages</p>
+        <a href="/snakes" class="text-on-surface text-sm hover:text-primary transition-colors">Collection</a>
+        <a href="/#about" class="text-on-surface text-sm hover:text-primary transition-colors">About</a>
+        <a href="/#contact" class="text-on-surface text-sm hover:text-primary transition-colors">Contact</a>
+      </div>
+      <div class="flex flex-col gap-2">
+        <p class="text-on-surface-variant text-xs uppercase tracking-[0.1em] font-semibold mb-1">Social</p>
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-on-surface text-sm hover:text-primary transition-colors">Instagram</a>
+        <a href="https://morphmarket.com" target="_blank" rel="noopener noreferrer" class="text-on-surface text-sm hover:text-primary transition-colors">MorphMarket</a>
+      </div>
+    </div>
   </div>
 </footer>

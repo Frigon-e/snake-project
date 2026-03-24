@@ -3,12 +3,10 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
-import SnakeGrid from '../components/snakes/SnakeGrid.astro';
-import Button from '../components/ui/Button.astro';
+import SnakeBentoGrid from '../components/snakes/SnakeBentoGrid.astro';
 import { createDb } from '../db/client';
 import { snakes, traitChips } from '../db/schema';
 import { eq } from 'drizzle-orm';
-
 import { env } from 'cloudflare:workers';
 import type { D1Database } from '@cloudflare/workers-types';
 
@@ -24,31 +22,182 @@ const snakesWithTraits = await Promise.all(
 <BaseLayout title="Home">
   <Header slot="header" />
 
-  <!-- Hero section -->
-  <section class="relative min-h-[80vh] flex items-end pb-24 px-6 bg-surface-container-lowest overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-b from-surface/0 via-surface/50 to-surface pointer-events-none" />
-    <div class="max-w-7xl mx-auto relative z-10">
-      <p class="text-primary uppercase tracking-widest text-xs mb-4 font-medium">The 2025 Morph Collection</p>
-      <h1 class="font-noto-serif text-on-surface text-5xl md:text-7xl font-bold leading-none max-w-3xl">
-        Precision-bred specimens
+  <!-- ─── Hero ─────────────────────────────────────────────── -->
+  <section class="relative min-h-screen flex items-center overflow-hidden bg-surface">
+    <!-- Background image -->
+    <div class="absolute inset-0">
+      <img
+        src="/demo/hero-bg.jpg"
+        alt=""
+        aria-hidden="true"
+        class="absolute inset-0 w-full h-full object-cover object-center"
+      />
+      <!-- Left-to-right gradient matching Figma: solid surface → transparent -->
+      <div class="absolute inset-0 bg-gradient-to-r from-surface via-surface/40 to-transparent"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 px-20 pt-[68px] max-w-[896px]">
+      <p class="text-primary uppercase tracking-[0.1em] text-xs font-bold mb-4">The 2024 Collection</p>
+      <h1
+        class="font-noto-serif font-bold tracking-tight mb-4"
+        style="font-size: clamp(3rem, 7vw, 6rem); line-height: 1.0;"
+      >
+        <span class="text-on-surface block">The Serpent's</span>
+        <span class="text-on-surface block">Edge.</span>
+        <span class="text-primary block">Hand-Selected</span>
+        <span class="text-primary block">Exotics.</span>
       </h1>
-      <p class="text-on-surface-variant mt-6 max-w-xl text-base leading-relaxed">
-        Each animal is a curated expression of genetics, temperament, and care.
+      <p class="text-on-surface/70 text-lg max-w-[576px] mt-6 mb-10 leading-relaxed">
+        Elevating the art of reptile keeping through precision genetics and elite husbandry.
+        Discover the rare, the beautiful, and the extraordinary.
       </p>
-      <div class="flex gap-4 mt-10">
-        <Button href="/snakes" variant="primary">Browse Collection</Button>
-        <Button href="#contact" variant="ghost">Inquire</Button>
+      <div class="flex gap-4 flex-wrap">
+        <a
+          href="/snakes"
+          class="inline-flex items-center gap-2 bg-primary text-on-primary font-semibold px-8 py-[17px] rounded-md hover:bg-primary/90 transition-colors text-sm"
+        >
+          View Collection <span aria-hidden="true">→</span>
+        </a>
+        <a
+          href="/#about"
+          class="inline-flex items-center px-8 py-[17px] rounded-md border border-outline-variant/20 text-on-surface font-semibold hover:border-outline-variant/40 hover:bg-surface-container-high transition-colors text-sm"
+        >
+          Our Story
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- Featured specimens -->
+  <!-- ─── Featured Specimens (Bento Grid) ──────────────────── -->
   {snakesWithTraits.length > 0 && (
-    <section class="max-w-7xl mx-auto px-6 py-24">
-      <h2 class="font-noto-serif text-on-surface text-3xl mb-12">Featured Specimens</h2>
-      <SnakeGrid snakes={snakesWithTraits} />
+    <section class="bg-surface px-20 py-24">
+      <div class="max-w-[1280px] mx-auto">
+        <div class="flex items-end justify-between mb-16 gap-8">
+          <div class="max-w-[600px]">
+            <h2 class="font-noto-serif text-on-surface text-[36px] font-bold mb-4">
+              Featured Specimens
+            </h2>
+            <p class="text-on-surface/60 text-base leading-relaxed">
+              A curated look at our most recent successful pairings. Each animal is backed
+              by complete genetic documentation.
+            </p>
+          </div>
+          <a
+            href="/snakes"
+            class="flex items-center gap-2 text-primary font-semibold text-base hover:text-primary/80 transition-colors shrink-0"
+          >
+            Explore all listings <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <SnakeBentoGrid snakes={snakesWithTraits} />
+      </div>
     </section>
   )}
+
+  <!-- ─── About Us ──────────────────────────────────────────── -->
+  <section id="about" class="bg-surface-container-low px-20 py-32">
+    <div class="max-w-[1280px] mx-auto grid grid-cols-2 gap-16 items-center">
+      <!-- Left: image with gold stat overlay -->
+      <div class="relative pb-8 pr-8">
+        <div class="aspect-square overflow-hidden rounded">
+          <img
+            src="/demo/about-facility.jpg"
+            alt="Breeding facility"
+            class="w-full h-full object-cover grayscale"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <!-- Gold stat card — offset outside image bounds -->
+        <div class="absolute bottom-0 right-0 bg-tertiary rounded p-8 shadow-2xl">
+          <p class="font-noto-serif font-bold text-on-tertiary text-4xl leading-tight">15+</p>
+          <p class="text-on-tertiary/70 text-xs uppercase tracking-[0.1em] font-medium mt-1">Years of Passion</p>
+        </div>
+      </div>
+
+      <!-- Right: copy -->
+      <div class="flex flex-col gap-6">
+        <p class="text-primary text-xs uppercase tracking-[0.2em] font-bold">Our Ethos</p>
+        <h2 class="font-noto-serif text-on-surface font-bold leading-tight" style="font-size: 3rem;">
+          Ethics. Genetics.<br />Design.
+        </h2>
+        <div class="flex flex-col gap-6 text-on-surface/70 text-base leading-relaxed">
+          <p>
+            At The Serpent's Edge, we view reptile breeding as a marriage between biological
+            science and aesthetic appreciation. Every animal in our facility is a product of
+            years of careful lineage tracking and meticulous environmental control.
+          </p>
+          <p>
+            We don't just produce snakes; we curate living art. Our commitment to husbandry
+            excellence ensures that every specimen arrives healthy, socialized, and ready to
+            become the centerpiece of your collection.
+          </p>
+        </div>
+        <div class="grid grid-cols-2 gap-8 pt-4">
+          <div>
+            <h4 class="font-inter font-bold text-on-surface text-base mb-2">Scientific Rigor</h4>
+            <p class="text-on-surface/50 text-xs leading-relaxed">
+              Strict genetic screening and lineage certification for every animal sold.
+            </p>
+          </div>
+          <div>
+            <h4 class="font-inter font-bold text-on-surface text-base mb-2">Global Shipping</h4>
+            <p class="text-on-surface/50 text-xs leading-relaxed">
+              Professional live-arrival guaranteed shipping across North America and EU.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CTA ───────────────────────────────────────────────── -->
+  <section id="contact" class="bg-surface px-20 py-24">
+    <div class="max-w-[1280px] mx-auto">
+      <div class="bg-surface-container-high rounded-2xl overflow-hidden relative px-28 py-24 text-center">
+        <!-- Subtle radial glow -->
+        <div
+          class="absolute inset-0 pointer-events-none opacity-10"
+          style="background: radial-gradient(ellipse at 50% 50%, var(--color-primary) 0%, transparent 60%);"
+        ></div>
+        <div class="relative flex flex-col items-center gap-8 max-w-[896px] mx-auto">
+          <h2
+            class="font-noto-serif font-bold text-on-surface leading-tight"
+            style="font-size: clamp(2rem, 5vw, 3.75rem);"
+          >
+            Ready to evolve your<br />collection?
+          </h2>
+          <p class="text-on-surface/60 text-lg leading-relaxed max-w-[680px]">
+            We specialize in bespoke consultations and investment-grade morphs. For inquiries,
+            current availability, or to discuss a specific pairing, connect with us on Instagram.
+          </p>
+          <div class="flex gap-6 flex-wrap justify-center">
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-3 bg-tertiary text-on-tertiary font-bold text-lg px-10 py-5 rounded-md hover:bg-tertiary/90 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+              </svg>
+              Inquire on Instagram
+            </a>
+            <a
+              href="/#contact"
+              class="inline-flex items-center gap-3 bg-surface-container-highest text-on-surface-variant font-bold text-lg px-10 py-5 rounded-md hover:text-on-surface transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              </svg>
+              Join Waitlist
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <Footer slot="footer" />
 </BaseLayout>

@@ -1,0 +1,129 @@
+---
+// src/components/snakes/SnakeBentoCard.astro
+import type { Snake, TraitChip } from '../../db/schema';
+
+interface Props {
+  snake: Snake & { traits?: TraitChip[] };
+  variant: 'large' | 'small' | 'horizontal';
+  fallbackImage?: string;
+}
+
+const { snake, variant, fallbackImage = '/placeholder-snake.svg' } = Astro.props;
+
+const imageUrl = snake.primaryImageKey
+  ? `/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`
+  : fallbackImage;
+
+const price = snake.priceInCents > 0
+  ? `$${(snake.priceInCents / 100).toLocaleString()}`
+  : null;
+
+const statusLabel = snake.available ? 'Available' : 'Sold';
+// Use design tokens only — no hardcoded hex
+const statusClass = snake.available
+  ? 'bg-secondary-container text-primary'
+  : 'bg-surface-container-highest/80 backdrop-blur-md text-on-surface-variant';
+---
+
+{variant === 'large' && (
+  <a
+    href={`/snakes/${snake.slug}`}
+    class="relative bg-surface-container-low rounded overflow-hidden group block h-full"
+    style="min-height: 500px;"
+  >
+    <div class="absolute inset-0">
+      <img
+        src={imageUrl}
+        alt={snake.name}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+        loading="lazy"
+        decoding="async"
+      />
+      <!-- Use surface token, not raw black, per design system rules -->
+      <div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 via-transparent to-transparent"></div>
+    </div>
+    <div class="absolute bottom-6 left-6 right-6 flex items-end justify-between">
+      <div class="flex flex-col gap-2">
+        <div class="flex gap-2 flex-wrap">
+          <span class={`${statusClass} text-[10px] font-bold uppercase tracking-[0.05em] px-2 py-0.5 rounded-full`}>
+            {statusLabel}
+          </span>
+          {snake.species && (
+            <span class="bg-surface-variant/60 backdrop-blur-md text-on-surface text-[10px] uppercase tracking-[0.05em] px-2 py-0.5 rounded-full">
+              {snake.species}
+            </span>
+          )}
+        </div>
+        <h3 class="font-noto-serif text-on-surface text-2xl font-bold leading-tight">{snake.name}</h3>
+      </div>
+      {price && (
+        <span class="font-bold text-tertiary text-xl shrink-0 ml-4">{price}</span>
+      )}
+    </div>
+  </a>
+)}
+
+{variant === 'small' && (
+  <div class="bg-surface-container-low rounded overflow-hidden flex flex-col h-full">
+    <div class="relative overflow-hidden flex-shrink-0" style="aspect-ratio: 1 / 1;">
+      <img
+        src={imageUrl}
+        alt={snake.name}
+        class="w-full h-full object-cover"
+        loading="lazy"
+        decoding="async"
+      />
+      <span class={`absolute top-4 right-4 ${statusClass} text-[10px] font-bold uppercase tracking-[0.05em] px-2 py-0.5 rounded-full`}>
+        {statusLabel}
+      </span>
+    </div>
+    <div class="p-6 flex flex-col gap-1">
+      <h3 class="font-noto-serif text-on-surface text-xl font-bold leading-tight">{snake.name}</h3>
+      {snake.description && (
+        <p class="text-on-surface/60 text-sm mb-3 line-clamp-2">{snake.description}</p>
+      )}
+      <a
+        href={`/snakes/${snake.slug}`}
+        class="w-full border border-outline-variant/20 text-on-surface text-sm font-semibold py-3 rounded-md text-center hover:border-outline-variant/40 hover:bg-surface-container-high transition-colors block mt-auto"
+      >
+        View Details
+      </a>
+    </div>
+  </div>
+)}
+
+{variant === 'horizontal' && (
+  <div class="bg-surface-container-low rounded overflow-hidden flex h-full">
+    <div class="flex-1 min-w-0 relative overflow-hidden">
+      <img
+        src={imageUrl}
+        alt={snake.name}
+        class="w-full h-full object-cover object-center"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+    <div class="flex-1 p-8 flex flex-col justify-center min-w-0">
+      <p class="text-primary text-xs font-bold uppercase tracking-[0.1em] mb-3">New Arrival</p>
+      <h3 class="font-noto-serif text-on-surface text-3xl font-bold leading-tight mb-4">{snake.name}</h3>
+      {snake.description && (
+        <p class="text-on-surface/60 text-sm leading-relaxed max-w-[280px] line-clamp-3">{snake.description}</p>
+      )}
+      <div class="flex items-center justify-between mt-auto pt-8">
+        {price
+          ? <span class="font-bold text-tertiary text-2xl">{price}</span>
+          : <span class="text-on-surface-variant text-sm">Price on request</span>
+        }
+        <a
+          href={`/snakes/${snake.slug}`}
+          class="bg-primary text-on-primary p-3 rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center flex-shrink-0"
+          aria-label={`View ${snake.name}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+)}

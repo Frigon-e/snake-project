@@ -22,9 +22,14 @@ const snakesWithTraits = await Promise.all(
 ---
 <BaseLayout title="Collection">
   <Header slot="header" />
-  <section class="max-w-7xl mx-auto px-6 py-24">
-    <h1 class="font-noto-serif text-on-surface text-4xl mb-12">The Collection</h1>
-    <SnakeGrid snakes={snakesWithTraits} />
+  <section class="bg-surface px-20 py-24">
+    <div class="max-w-[1280px] mx-auto">
+      <p class="text-primary uppercase tracking-[0.1em] text-xs font-bold mb-4">Our Specimens</p>
+      <h1 class="font-noto-serif text-on-surface font-bold mb-16" style="font-size: 3.5rem;">
+        The Collection
+      </h1>
+      <SnakeGrid snakes={snakesWithTraits} />
+    </div>
   </section>
   <Footer slot="footer" />
 </BaseLayout>

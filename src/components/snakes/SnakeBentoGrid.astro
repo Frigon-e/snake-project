@@ -1,0 +1,49 @@
+---
+// src/components/snakes/SnakeBentoGrid.astro
+import SnakeBentoCard from './SnakeBentoCard.astro';
+import SnakeGrid from './SnakeGrid.astro';
+import type { Snake, TraitChip } from '../../db/schema';
+
+interface Props {
+  snakes: (Snake & { traits?: TraitChip[] })[];
+}
+
+// Use `snakeList` to avoid shadowing the `snakes` DB table name if ever imported
+const { snakes: snakeList } = Astro.props;
+
+const [large, small1, small2, horizontal] = snakeList;
+
+// Slot-specific demo fallback images (used when snake has no R2 image)
+const demoImages = [
+  '/demo/snake-palmetto.jpg',
+  '/demo/snake-morph1.jpg',
+  '/demo/snake-morph2.jpg',
+  '/demo/snake-morph3.jpg',
+];
+---
+
+{snakeList.length < 3
+  ? <SnakeGrid snakes={snakeList} />
+  : (
+    <div class="grid grid-cols-12 gap-6">
+      <!-- Row 1: large (8 cols) + small (4 cols) -->
+      <div class="col-span-12 lg:col-span-8 min-h-[500px]">
+        <SnakeBentoCard snake={large} variant="large" fallbackImage={demoImages[0]} />
+      </div>
+      <div class="col-span-12 lg:col-span-4">
+        <SnakeBentoCard snake={small1} variant="small" fallbackImage={demoImages[1]} />
+      </div>
+      <!-- Row 2: small (4 cols) + horizontal (8 cols) -->
+      {small2 && (
+        <div class="col-span-12 lg:col-span-4">
+          <SnakeBentoCard snake={small2} variant="small" fallbackImage={demoImages[2]} />
+        </div>
+      )}
+      {horizontal && (
+        <div class="col-span-12 lg:col-span-8 min-h-[400px]">
+          <SnakeBentoCard snake={horizontal} variant="horizontal" fallbackImage={demoImages[3]} />
+        </div>
+      )}
+    </div>
+  )
+}

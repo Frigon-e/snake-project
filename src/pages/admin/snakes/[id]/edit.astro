@@ -176,7 +176,7 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
 
           <!-- Price input -->
           <div>
-            <label for="field-price" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Price (cents)</label>
+            <label for="field-price" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Price (USD cents)</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/50 text-sm">¢</span>
               <input type="number" name="priceInCents" id="field-price" value={snake.priceInCents} step="1" min="0"
@@ -210,7 +210,7 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
           </fieldset>
 
           <!-- Featured toggle -->
-          <div class="flex items-center justify-between pt-6 mt-2 bg-surface-container rounded-lg px-4 py-4">
+          <div class="flex items-center justify-between bg-surface-container rounded-lg px-4 py-4 mt-4">
             <div>
               <p class="text-xs uppercase tracking-[0.6px] text-on-surface font-medium mb-1">Featured Specimen</p>
               <p class="text-on-surface/60 text-[10px]">Highlight this specimen on the public landing page gallery.</p>

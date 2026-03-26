@@ -24,7 +24,7 @@ const snakesWithTraits = await Promise.all(
 
 void Astro.getActionResult(actions.deleteSnake);
 ---
-<AdminLayout title="Dashboard">
+<AdminLayout title="Inventory Overview">
   <div class="flex flex-col gap-10">
 
     <!-- Dashboard header -->
@@ -68,7 +68,7 @@ void Astro.getActionResult(actions.deleteSnake);
               <polyline points="16 7 22 7 22 13"/>
             </svg>
           </div>
-          <span class="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full">All time</span>
+          <span class="bg-tertiary/10 text-tertiary text-[10px] font-bold px-2 py-0.5 rounded-full">Available</span>
         </div>
         <div>
           <p class="text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-1">Active Listings</p>
@@ -118,7 +118,7 @@ void Astro.getActionResult(actions.deleteSnake);
               <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Morph Details</th>
               <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Status</th>
               <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Price</th>
-              <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Actions</th>
+              <th class="text-right px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -128,17 +128,17 @@ void Astro.getActionResult(actions.deleteSnake);
                 <!-- SPECIMEN -->
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-md overflow-hidden bg-surface-container-highest flex-shrink-0">
+                    <div class="w-12 h-12 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
                       {snake.primaryImageKey ? (
                         <img
-                          src={`/api/r2/image?key=${snake.primaryImageKey}`}
+                          src={`/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`}
                           alt={snake.name}
                           class="w-full h-full object-cover"
                         />
                       ) : (
                         <img
                           src="/placeholder-snake.svg"
-                          alt="No image"
+                          alt=""
                           class="w-full h-full object-cover opacity-40"
                         />
                       )}
@@ -194,7 +194,7 @@ void Astro.getActionResult(actions.deleteSnake);
 
                 <!-- ACTIONS -->
                 <td class="px-6 py-4">
-                  <div class="flex items-center gap-1">
+                  <div class="flex items-center justify-end gap-1">
                     <a
                       href={`/admin/snakes/${snake.id}/edit`}
                       class="p-1.5 rounded text-on-surface/50 hover:text-on-surface hover:bg-surface-container-high transition-colors"
@@ -226,6 +226,11 @@ void Astro.getActionResult(actions.deleteSnake);
 
               </tr>
             ))}
+            {snakesWithTraits.length === 0 && (
+              <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-on-surface/40 text-sm">No specimens yet.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

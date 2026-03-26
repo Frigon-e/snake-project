@@ -6,28 +6,102 @@ interface Props {
   title: string;
 }
 const { title } = Astro.props;
+const pathname = Astro.url.pathname;
+
+const navItems = [
+  {
+    label: 'Inventory',
+    href: '/admin/snakes',
+    active: pathname.startsWith('/admin/snakes'),
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3z"/><path d="M6 6h.008v.008H6V6z"/></svg>`,
+  },
+  {
+    label: 'Inquiries',
+    href: '/admin',
+    active: pathname === '/admin',
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661z"/></svg>`,
+  },
+  {
+    label: 'Media',
+    href: '/admin/media',
+    active: pathname.startsWith('/admin/media'),
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z"/></svg>`,
+  },
+];
 ---
 <BaseLayout title={`Admin — ${title}`}>
-  <div slot="header" class="flex h-screen bg-surface-container-lowest overflow-hidden">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-surface-container flex flex-col p-6 gap-6 border-r border-outline-variant/20 shrink-0">
-      <div class="font-noto-serif text-xl text-on-surface font-bold">Serpent's Edge</div>
-      <nav class="flex flex-col gap-1 text-sm">
-        <a href="/admin" class="text-on-surface-variant hover:text-primary transition-colors py-2 px-3 rounded hover:bg-surface-container-high">Dashboard</a>
-        <a href="/admin/snakes" class="text-on-surface-variant hover:text-primary transition-colors py-2 px-3 rounded hover:bg-surface-container-high">Snakes</a>
-        <a href="/admin/media" class="text-on-surface-variant hover:text-primary transition-colors py-2 px-3 rounded hover:bg-surface-container-high">Media</a>
+  <div slot="header" class="flex h-screen bg-surface overflow-hidden">
+    <!-- Sidebar: 256px fixed -->
+    <aside class="w-64 shrink-0 bg-surface-container border-r border-outline-variant/15 flex flex-col h-full">
+      <!-- Brand block -->
+      <div class="px-4 pt-4 pb-8">
+        <div class="flex items-center gap-3 px-2">
+          <div class="w-10 h-10 bg-primary/10 rounded-sm flex items-center justify-center shrink-0">
+            <span class="font-noto-serif text-primary font-bold text-sm leading-none">SE</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <p class="font-noto-serif text-tertiary font-bold text-lg leading-none">The Serpent's Edge</p>
+            <p class="text-[10px] uppercase tracking-[2px] text-on-surface/60">Admin Portal</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nav -->
+      <nav class="flex-1 flex flex-col gap-1 px-2 pt-2">
+        {navItems.map(item => (
+          <a
+            href={item.href}
+            class:list={[
+              'flex items-center gap-3 px-3 py-[10px] rounded-md text-sm font-medium transition-colors',
+              item.active
+                ? 'bg-primary/10 text-primary'
+                : 'text-on-surface/70 hover:bg-surface-container-high',
+            ]}
+          >
+            <span class="shrink-0 w-5 h-5" set:html={item.icon} />
+            {item.label}
+          </a>
+        ))}
       </nav>
+
+      <!-- Bottom block — background shift, no border-t -->
+      <div class="px-2 pt-4 pb-4 bg-surface-container-lowest">
+        <a
+          href="/admin/snakes/new"
+          class="flex items-center justify-center gap-2 w-full bg-primary text-on-primary font-bold py-3 rounded-md text-sm hover:bg-primary/90 transition-colors mb-4"
+        >
+          + New Specimen
+        </a>
+        <a
+          href="/admin"
+          class="block text-center text-[11px] text-on-surface/40 hover:text-on-surface/60 transition-colors"
+        >
+          Support
+        </a>
+      </div>
     </aside>
 
     <!-- Main content area -->
-    <div class="flex-1 overflow-auto flex flex-col">
-      <header class="h-16 bg-surface-container border-b border-outline-variant/20 flex items-center px-8 justify-between shrink-0">
-        <h1 class="font-inter text-on-surface text-lg">{title}</h1>
-        <slot name="admin-header-actions" />
+    <div class="flex-1 flex flex-col min-w-0 overflow-auto">
+      <!-- Top bar -->
+      <header class="sticky top-0 z-10 backdrop-blur-md bg-surface/60 border-b border-outline-variant/15 flex items-center justify-between px-6 h-14 shrink-0">
+        <h1 class="font-noto-serif text-primary text-xl font-bold">{title}</h1>
+        <div class="flex items-center gap-4">
+          <slot name="header-actions" />
+          <div class="w-px h-8 bg-outline-variant/20"></div>
+          <span class="text-[10px] uppercase tracking-[1px] text-on-surface/80 font-medium">Curator Admin</span>
+          <div class="w-8 h-8 rounded-full border border-primary/20 bg-surface-container-high flex items-center justify-center text-on-surface/60">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+            </svg>
+          </div>
+        </div>
       </header>
-      <div class="p-8 flex-1">
+
+      <!-- Content -->
+      <main class="flex-1 p-10">
         <slot />
-      </div>
+      </main>
     </div>
   </div>
 </BaseLayout>

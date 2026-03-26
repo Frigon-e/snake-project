@@ -14,7 +14,7 @@ const db = createDb((env as unknown as { DB: D1Database }).DB);
 const allSnakes = await db.select().from(snakes).orderBy(snakes.createdAt);
 ---
 <AdminLayout title="Snakes">
-  <div slot="admin-header-actions">
+  <div slot="header-actions">
     <Button href="/admin/snakes/new" variant="primary">Add Snake</Button>
   </div>
   <div class="bg-surface-container rounded overflow-hidden">

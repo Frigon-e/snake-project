@@ -1,13 +1,13 @@
 # Design Audit & UI Polish: The Serpent's Edge
 
 **Date:** 2026-03-23  
-**Goal:** Audit the live dev site (http://localhost:4321) against `DESIGN.md` tokens and the Stitch project design (ID: `13100941290012229994`). Identify gaps and produce a prioritized fix list.
+**Goal:** Audit the live dev site (http://localhost:4321) against `DESIGN.md` tokens and the Figma Snake Project design. Identify gaps and produce a prioritized fix list.
 
 **Status at time of audit:**
 - Dev server running at http://localhost:4321 ✅
 - Seed data applied (Citrus Dream, Phantom Mist, Desert Clown, Obsidian Queen) ✅
 - `Astro.locals.runtime.env` migration complete (cloudflare:workers) ✅
-- Stitch MCP not yet configured in Claude Desktop — Stitch comparison deferred until MCP OAuth is set up
+- Figma MCP now available — design comparison can be done via `mcp__plugin_figma_figma__get_design_context`
 
 ---
 
@@ -116,28 +116,19 @@
 | 5 | GAP-4: Species label color | Medium — editorial feel | Low |
 | 6 | GAP-1: Hero background image | High — visual impact | Medium |
 | 7 | GAP-9: Collection h1 size | Low — cosmetic | Low |
-| 8 | GAP-3: Asymmetric hero layout | High — matches Stitch editorial intent | High |
+| 8 | GAP-3: Asymmetric hero layout | High — matches Figma editorial intent | High |
 | 9 | GAP-8: Ambient shadow on detail | Low — subtle | Low |
 
 ---
 
-## Stitch MCP — Deferred
+## Figma MCP — Now Available
 
-The Stitch MCP tools (`mcp__stitch__list_screens`, `mcp__stitch__get_screen`) require Google OAuth to be configured in Claude Desktop's `mcpServers` config. The design comparison against the Stitch project (`13100941290012229994`) should be done once the MCP is connected.
+The Figma MCP (`mcp__plugin_figma_figma__*`) is configured and authenticated. Use `get_design_context` with the Snake Project file key and node IDs to fetch component designs for pixel-accurate comparison.
 
-To configure, add to `~/.config/Claude/claude_desktop_config.json`:
-```json
-{
-  "mcpServers": {
-    "stitch": {
-      "command": "npx",
-      "args": ["-y", "@google/generative-ai-stitch-mcp"],
-      "env": {}
-    }
-  }
-}
-```
-Then restart Claude Code and run a new session — the tools will appear and screens can be fetched for pixel-accurate comparison.
+Key tools:
+- `mcp__plugin_figma_figma__get_design_context` — fetches component code + screenshot + hints
+- `mcp__plugin_figma_figma__get_screenshot` — visual snapshot of any node
+- `mcp__plugin_figma_figma__get_metadata` — file structure and node tree
 
 ---
 
@@ -156,8 +147,8 @@ Then restart Claude Code and run a new session — the tools will appear and scr
 - [ ] **Fix-6:** Add a hero background image with overlay (placeholder or seeded R2 image)
 - [ ] **Fix-7:** Apply `display-lg` treatment to collection page `<h1>`
 
-### After Stitch MCP is connected
+### Figma MCP comparison (now unblocked)
 
-- [ ] **Fix-8:** Fetch all Stitch screens and do pixel-level comparison
-- [ ] **Fix-9:** Implement asymmetric editorial hero layout matching Stitch design
-- [ ] **Fix-10:** Apply any additional component-level changes revealed by Stitch comparison
+- [ ] **Fix-8:** Fetch Snake Project screens via `mcp__plugin_figma_figma__get_design_context` and do pixel-level comparison
+- [ ] **Fix-9:** Implement asymmetric editorial hero layout matching Figma design
+- [ ] **Fix-10:** Apply any additional component-level changes revealed by Figma comparison

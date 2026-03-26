@@ -1,64 +1,173 @@
 ---
 // src/pages/admin/snakes/index.astro
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import Button from '../../../components/ui/Button.astro';
-import Badge from '../../../components/ui/Badge.astro';
+import Chip from '../../../components/ui/Chip.astro';
 import { createDb } from '../../../db/client';
-import { snakes } from '../../../db/schema';
+import { snakes, traitChips } from '../../../db/schema';
+import { eq, desc } from 'drizzle-orm';
 import { actions } from 'astro:actions';
 
 import { env } from 'cloudflare:workers';
 import type { D1Database } from '@cloudflare/workers-types';
 
 const db = createDb((env as unknown as { DB: D1Database }).DB);
-const allSnakes = await db.select().from(snakes).orderBy(snakes.createdAt);
+void Astro.getActionResult(actions.deleteSnake);
+const allSnakes = await db.select().from(snakes).orderBy(desc(snakes.createdAt));
+const snakesWithTraits = await Promise.all(
+  allSnakes.map(async s => ({
+    ...s,
+    traits: await db.select().from(traitChips).where(eq(traitChips.snakeId, s.id)),
+  }))
+);
 ---
-<AdminLayout title="Snakes">
+<AdminLayout title="Inventory">
   <div slot="header-actions">
-    <Button href="/admin/snakes/new" variant="primary">Add Snake</Button>
+    <a href="/admin/snakes/new" class="bg-primary text-on-primary font-bold text-sm px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">
+      + New Specimen
+    </a>
   </div>
-  <div class="bg-surface-container rounded overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-surface-container-high">
-        <tr>
-          <th class="text-left px-6 py-4 text-on-surface-variant text-xs uppercase tracking-widest font-medium">Name</th>
-          <th class="text-left px-6 py-4 text-on-surface-variant text-xs uppercase tracking-widest font-medium">Species</th>
-          <th class="text-left px-6 py-4 text-on-surface-variant text-xs uppercase tracking-widest font-medium">Price</th>
-          <th class="text-left px-6 py-4 text-on-surface-variant text-xs uppercase tracking-widest font-medium">Status</th>
-          <th class="px-6 py-4"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {allSnakes.map(snake => (
-          <tr class="border-t border-outline-variant/10 hover:bg-surface-container-high/50 transition-colors">
-            <td class="px-6 py-4 text-on-surface font-noto-serif">{snake.name}</td>
-            <td class="px-6 py-4 text-on-surface-variant">{snake.species}</td>
-            <td class="px-6 py-4 text-on-surface">
-              {snake.priceInCents > 0 ? `$${(snake.priceInCents / 100).toLocaleString()}` : '—'}
-            </td>
-            <td class="px-6 py-4">
-              <Badge variant={snake.available ? 'available' : 'sold'}>
-                {snake.available ? 'Available' : 'Sold'}
-              </Badge>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-3 justify-end">
-                <a href={`/admin/snakes/${snake.id}/edit`} class="text-primary text-xs hover:underline">Edit</a>
-                <form method="POST" action={actions.deleteSnake}>
-                  <input type="hidden" name="id" value={snake.id} />
-                  <button type="submit" class="text-red-400 text-xs hover:underline"
-                    onclick="return confirm('Delete this snake?')">
-                    Delete
-                  </button>
-                </form>
-              </div>
-            </td>
+
+  <!-- Specimen Registry table card -->
+  <div class="bg-surface-container-low rounded-lg border border-outline-variant/5 overflow-hidden">
+
+    <!-- Table header bar -->
+    <div class="flex items-center justify-between px-6 py-5 border-b border-outline-variant/10">
+      <h3 class="font-noto-serif text-on-surface font-bold text-xl">Specimen Registry</h3>
+      <p class="text-[10px] uppercase tracking-[1px] text-on-surface/60">{snakesWithTraits.length} total</p>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-surface-container">
+            <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Specimen</th>
+            <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Species</th>
+            <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Morph Details</th>
+            <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Status</th>
+            <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Price</th>
+            <th class="text-right px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-    {allSnakes.length === 0 && (
-      <p class="text-center text-on-surface-variant py-12 text-sm">No snakes yet. Add one above.</p>
-    )}
+        </thead>
+        <tbody>
+          {snakesWithTraits.map(snake => (
+            <tr class="even:bg-surface-container hover:bg-surface-container-high/40 transition-colors">
+
+              <!-- SPECIMEN -->
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
+                    {snake.primaryImageKey ? (
+                      <img
+                        src={`/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`}
+                        alt={snake.name}
+                        class="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src="/placeholder-snake.svg"
+                        alt=""
+                        class="w-full h-full object-cover opacity-40"
+                      />
+                    )}
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-sm font-medium text-on-surface">{snake.name}</span>
+                    {snake.featured && (
+                      <span class="bg-tertiary/20 text-tertiary text-[9px] font-bold uppercase tracking-[0.45px] px-1.5 py-0.5 rounded-sm self-start">
+                        Featured
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </td>
+
+              <!-- SPECIES -->
+              <td class="px-6 py-4">
+                <span class="text-sm text-on-surface/70">{snake.species}</span>
+              </td>
+
+              <!-- MORPH DETAILS -->
+              <td class="px-6 py-4">
+                <div class="flex flex-wrap gap-1.5">
+                  {snake.traits.map(trait => (
+                    <Chip type={trait.type}>{trait.label}</Chip>
+                  ))}
+                  {snake.traits.length === 0 && (
+                    <span class="text-xs text-on-surface/40 italic">—</span>
+                  )}
+                </div>
+              </td>
+
+              <!-- STATUS -->
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <span class={`w-2 h-2 rounded-full flex-shrink-0 ${snake.available ? 'bg-primary' : 'bg-on-surface/30'}`}></span>
+                  <span class="text-xs font-medium uppercase tracking-wide text-on-surface/70">
+                    {snake.available ? 'Available' : 'Sold'}
+                  </span>
+                </div>
+              </td>
+
+              <!-- PRICE -->
+              <td class="px-6 py-4">
+                {snake.priceInCents > 0 ? (
+                  <span class="font-noto-serif text-tertiary text-sm font-bold">
+                    ${(snake.priceInCents / 100).toLocaleString('en-US')}
+                  </span>
+                ) : (
+                  <span class="text-on-surface/40 text-sm">—</span>
+                )}
+              </td>
+
+              <!-- ACTIONS -->
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-end gap-1">
+                  <a
+                    href={`/admin/snakes/${snake.id}/edit`}
+                    class="p-1.5 rounded text-on-surface/50 hover:text-on-surface hover:bg-surface-container-high transition-colors"
+                    aria-label={`Edit ${snake.name}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </a>
+                  <form method="POST" action={actions.deleteSnake}>
+                    <input type="hidden" name="id" value={snake.id} />
+                    <button
+                      type="submit"
+                      class="p-1.5 rounded text-on-surface/50 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                      aria-label={`Delete ${snake.name}`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <path d="M10 11v6"/>
+                        <path d="M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
+                    </button>
+                  </form>
+                </div>
+              </td>
+
+            </tr>
+          ))}
+          {snakesWithTraits.length === 0 && (
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-on-surface/40 text-sm">No specimens yet.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table footer -->
+    <div class="bg-surface-container px-6 py-4">
+      <p class="text-[10px] uppercase tracking-[1px] text-on-surface/60">Showing {snakesWithTraits.length} specimens</p>
+    </div>
+
   </div>
+
 </AdminLayout>

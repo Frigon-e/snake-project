@@ -66,8 +66,8 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Name</label>
-              <input type="text" name="name" value={snake.name} id="name-input" required
+              <label for="field-name" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Name</label>
+              <input type="text" name="name" value={snake.name} id="field-name" required
                 class:list={[
                   'w-full bg-surface-container-lowest border text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50',
                   fieldErrors.name ? 'border-red-400/50' : 'border-outline-variant/20'
@@ -76,8 +76,8 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
               {fieldErrors.name && <p class="text-red-400 text-[10px] mt-1">{fieldErrors.name[0]}</p>}
             </div>
             <div>
-              <label class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Slug</label>
-              <input type="text" name="slug" value={snake.slug} id="slug-input" required
+              <label for="field-slug" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Slug</label>
+              <input type="text" name="slug" value={snake.slug} id="field-slug" required
                 class:list={[
                   'w-full bg-surface-container-lowest border text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50',
                   fieldErrors.slug ? 'border-red-400/50' : 'border-outline-variant/20'
@@ -87,8 +87,8 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
             </div>
           </div>
           <div>
-            <label class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Species</label>
-            <input type="text" name="species" value={snake.species} required
+            <label for="field-species" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Species</label>
+            <input type="text" name="species" value={snake.species} id="field-species" required
               class:list={[
                 'w-full bg-surface-container-lowest border text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50',
                 fieldErrors.species ? 'border-red-400/50' : 'border-outline-variant/20'
@@ -114,9 +114,9 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
                   formaction={actions.deleteTrait}
                   class:list={[
                     'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium transition-colors',
-                    trait.type === 'dominant' ? 'bg-surface-container text-on-surface' : '',
-                    trait.type === 'recessive' ? 'bg-tertiary-container/30 text-tertiary' : '',
-                    trait.type === 'codominant' ? 'bg-secondary-container/30 text-primary' : '',
+                    trait.type === 'dominant' ? 'bg-surface-container border border-outline-variant/20 text-on-surface' : '',
+                    trait.type === 'recessive' ? 'bg-tertiary-container/30 border border-tertiary/20 text-tertiary' : '',
+                    trait.type === 'codominant' ? 'bg-secondary-container/30 border border-primary/20 text-primary' : '',
                   ]}
                 >
                   {trait.label} <span class="opacity-50 text-[10px]">×</span>
@@ -155,9 +155,10 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
             <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Narrative</p>
           </div>
           <div>
-            <label class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Description</label>
+            <label for="field-description" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Description</label>
             <textarea
               name="description"
+              id="field-description"
               rows="5"
               class="w-full bg-surface-container-lowest border border-outline-variant/20 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50 resize-none"
             >{snake.description}</textarea>
@@ -175,36 +176,38 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
 
           <!-- Price input -->
           <div>
-            <label class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Price (cents)</label>
+            <label for="field-price" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Price (cents)</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/50 text-sm">¢</span>
-              <input type="number" name="priceInCents" value={snake.priceInCents} step="1" min="0"
+              <input type="number" name="priceInCents" id="field-price" value={snake.priceInCents} step="1" min="0"
                 class="w-full bg-surface-container-lowest border border-outline-variant/20 text-on-surface text-sm pl-7 pr-3 py-2 rounded-md focus:outline-none focus:border-primary/50"
               />
             </div>
           </div>
 
           <!-- Availability toggle -->
-          <div>
-            <label class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Availability</label>
+          <fieldset class="border-0 p-0 m-0 flex flex-col gap-2">
+            <legend class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Availability</legend>
             <div class="flex rounded-md overflow-hidden border border-outline-variant/20">
               <button type="button" id="status-available"
+                aria-pressed={snake.available}
                 class:list={['status-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
                   snake.available ? 'bg-primary/10 text-primary shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]' : 'bg-surface-container-lowest text-on-surface/60'
                 ]}
-                onclick="document.getElementById('available-hidden').value='true'; updateStatus(this)">
+                onclick="document.getElementById('available-hidden').value='true'; updateStatus(this, false)">
                 Available
               </button>
               <button type="button" id="status-sold"
+                aria-pressed={!snake.available}
                 class:list={['status-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
                   !snake.available ? 'bg-surface-container text-on-surface' : 'bg-surface-container-lowest text-on-surface/60'
                 ]}
-                onclick="document.getElementById('available-hidden').value='false'; updateStatus(this)">
+                onclick="document.getElementById('available-hidden').value='false'; updateStatus(this, true)">
                 Sold
               </button>
               <input type="hidden" name="available" id="available-hidden" value={snake.available ? 'true' : 'false'} />
             </div>
-          </div>
+          </fieldset>
 
           <!-- Featured toggle -->
           <div class="flex items-center justify-between pt-6 mt-2 bg-surface-container rounded-lg px-4 py-4">
@@ -213,6 +216,7 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
               <p class="text-on-surface/60 text-[10px]">Highlight this specimen on the public landing page gallery.</p>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
+              <span class="sr-only">Featured Specimen</span>
               <input type="checkbox" name="featured" value="true" class="sr-only peer" checked={snake.featured} />
               <div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:bg-primary/40 peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-on-surface after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:bg-primary"></div>
             </label>
@@ -249,8 +253,8 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
           </div>
           <!-- R2 key input -->
           <div>
-            <label class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Primary Image Key</label>
-            <input type="text" name="primaryImageKey" value={snake.primaryImageKey ?? ''} class="w-full bg-surface-container-lowest border border-outline-variant/20 text-on-surface text-xs font-mono px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" placeholder="snakes/xxx/primary.jpg" />
+            <label for="field-image-key" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Primary Image Key</label>
+            <input type="text" name="primaryImageKey" id="field-image-key" value={snake.primaryImageKey ?? ''} class="w-full bg-surface-container-lowest border border-outline-variant/20 text-on-surface text-xs font-mono px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" placeholder="snakes/xxx/primary.jpg" />
           </div>
         </section>
       </div>
@@ -268,13 +272,19 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
   </div>
 
   <script is:inline>
-    function updateStatus(activeBtn) {
+    function updateStatus(activeBtn, isSoldVariant) {
       document.querySelectorAll('.status-btn').forEach(btn => {
-        btn.classList.remove('bg-primary/10', 'text-primary');
+        btn.classList.remove('bg-primary/10', 'text-primary', 'bg-surface-container', 'text-on-surface', 'shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]');
         btn.classList.add('bg-surface-container-lowest', 'text-on-surface/60');
+        btn.setAttribute('aria-pressed', 'false');
       });
-      activeBtn.classList.add('bg-primary/10', 'text-primary');
       activeBtn.classList.remove('bg-surface-container-lowest', 'text-on-surface/60');
+      if (isSoldVariant) {
+        activeBtn.classList.add('bg-surface-container', 'text-on-surface');
+      } else {
+        activeBtn.classList.add('bg-primary/10', 'text-primary', 'shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]');
+      }
+      activeBtn.setAttribute('aria-pressed', 'true');
     }
   </script>
 </AdminLayout>

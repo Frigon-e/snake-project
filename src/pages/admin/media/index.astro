@@ -35,12 +35,25 @@ const uploadedKey = new URL(Astro.request.url).searchParams.get('uploaded');
       <div class="flex items-center gap-2">
         <code class="flex-1 bg-surface-container-lowest text-on-surface/60 font-mono text-xs px-3 py-2 rounded-md break-all">{uploadedKey}</code>
         <button
-          onclick={`navigator.clipboard.writeText('${uploadedKey}').then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy', 1500); })`}
+          id="copy-key-btn"
+          data-key={uploadedKey}
           class="shrink-0 text-primary text-xs font-bold uppercase tracking-[1px] hover:text-primary/80 transition-colors px-3 py-2 bg-primary/10 rounded-md"
         >
           Copy
         </button>
       </div>
+      <script is:inline>
+        const btn = document.getElementById('copy-key-btn');
+        if (btn) {
+          btn.addEventListener('click', () => {
+            const key = btn.getAttribute('data-key') ?? '';
+            navigator.clipboard.writeText(key).then(() => {
+              btn.textContent = 'Copied!';
+              setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+            });
+          });
+        }
+      </script>
       <p class="text-on-surface/40 text-xs mt-2">Paste this key into a specimen's Primary Image Key field.</p>
     </div>
   )}

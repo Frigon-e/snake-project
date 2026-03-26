@@ -61,10 +61,15 @@ export const server = {
       priceInCents: z.coerce.number().int().min(0).default(0),
       available: z.coerce.boolean().default(false),
       featured: z.coerce.boolean().default(false),
+      primaryImageKey: z.string().optional(),
     }),
-    handler: async ({ id, ...data }) => {
+    handler: async ({ id, primaryImageKey, ...data }) => {
       const db = getDb();
-      await db.update(snakes).set({ ...data, updatedAt: new Date() }).where(eq(snakes.id, id));
+      await db.update(snakes).set({
+        ...data,
+        primaryImageKey: primaryImageKey ?? null,
+        updatedAt: new Date(),
+      }).where(eq(snakes.id, id));
       return { success: true };
     },
   }),

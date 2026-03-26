@@ -1,9 +1,6 @@
 ---
 // src/pages/admin/snakes/new.astro
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import FormField from '../../../components/ui/FormField.astro';
-import Input from '../../../components/ui/Input.astro';
-import Button from '../../../components/ui/Button.astro';
 import { actions, isInputError } from 'astro:actions';
 
 const result = Astro.getActionResult(actions.createSnake);
@@ -12,42 +9,207 @@ if (result && !result.error) {
 }
 const fieldErrors = result?.error && isInputError(result.error) ? result.error.fields : {};
 ---
-<AdminLayout title="New Snake">
-  <div class="max-w-xl">
+<AdminLayout title="New Specimen">
+  <div class="max-w-2xl mx-auto flex flex-col gap-6">
+
+    <!-- Page header -->
+    <div class="flex items-end justify-between mb-8">
+      <div>
+        <div class="bg-secondary-container/30 inline-flex px-2 py-1 rounded-sm mb-3">
+          <span class="text-primary text-[10px] font-bold uppercase tracking-[2px]">Specimen Management</span>
+        </div>
+        <h1 class="font-noto-serif text-on-surface text-5xl font-bold tracking-tight">New Specimen</h1>
+      </div>
+      <a href="/admin/snakes" class="bg-surface-container text-on-surface font-medium text-sm px-6 py-[10px] rounded-md hover:bg-surface-container-high transition-colors">
+        Cancel
+      </a>
+    </div>
+
+    {result?.error && !isInputError(result.error) && (
+      <div class="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-md">
+        An error occurred while creating the specimen. Please try again.
+      </div>
+    )}
+
     <form method="POST" action={actions.createSnake} class="flex flex-col gap-6">
-      <FormField label="Name" name="name" required error={fieldErrors.name?.[0]}>
-        <Input name="name" required error={fieldErrors.name?.[0]} />
-      </FormField>
-      <FormField label="Slug (URL)" name="slug" required error={fieldErrors.slug?.[0]}>
-        <Input name="slug" placeholder="e.g. banana-pastel-2025" required error={fieldErrors.slug?.[0]} />
-      </FormField>
-      <FormField label="Species" name="species" required error={fieldErrors.species?.[0]}>
-        <Input name="species" required error={fieldErrors.species?.[0]} />
-      </FormField>
-      <FormField label="Description" name="description">
-        <textarea
-          name="description"
-          rows="4"
-          class="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded focus:outline-none focus:border-primary/50 resize-none"
-        />
-      </FormField>
-      <FormField label="Price (cents, e.g. 50000 = $500)" name="priceInCents">
-        <Input name="priceInCents" type="number" placeholder="0" />
-      </FormField>
-      <div class="flex gap-6">
-        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
-          <input type="checkbox" name="available" value="true" class="accent-primary" />
-          Available for purchase
-        </label>
-        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
-          <input type="checkbox" name="featured" value="true" class="accent-primary" />
-          Featured on homepage
-        </label>
-      </div>
-      <div class="flex gap-4">
-        <Button type="submit" variant="primary">Create Snake</Button>
-        <Button href="/admin/snakes" variant="ghost">Cancel</Button>
-      </div>
+
+      <!-- Genetic Profile card -->
+      <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+        <div class="flex items-center gap-2">
+          <svg class="w-3 h-3 text-primary" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 1C3.24 1 1 3.24 1 6s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 1.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 7.1c-1.25 0-2.36-.63-3-1.6.01-1 2-1.55 3-1.55s2.99.55 3 1.55c-.64.97-1.75 1.6-3 1.6z" fill="currentColor"/>
+          </svg>
+          <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Genetic Profile</p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="field-name" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Name</label>
+            <input
+              type="text"
+              id="field-name"
+              name="name"
+              required
+              class:list={[
+                'w-full bg-surface-container-lowest border text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50',
+                fieldErrors.name ? 'border-red-400/50' : 'border-outline-variant/20'
+              ]}
+            />
+            {fieldErrors.name && <p class="text-red-400 text-[10px] mt-1">{fieldErrors.name[0]}</p>}
+          </div>
+          <div>
+            <label for="field-slug" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Slug</label>
+            <input
+              type="text"
+              id="field-slug"
+              name="slug"
+              required
+              placeholder="auto-generated"
+              class:list={[
+                'w-full bg-surface-container-lowest border text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50',
+                fieldErrors.slug ? 'border-red-400/50' : 'border-outline-variant/20'
+              ]}
+            />
+            {fieldErrors.slug && <p class="text-red-400 text-[10px] mt-1">{fieldErrors.slug[0]}</p>}
+          </div>
+        </div>
+        <div>
+          <label for="field-species" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Species</label>
+          <input
+            type="text"
+            id="field-species"
+            name="species"
+            required
+            class:list={[
+              'w-full bg-surface-container-lowest border text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50',
+              fieldErrors.species ? 'border-red-400/50' : 'border-outline-variant/20'
+            ]}
+          />
+          {fieldErrors.species && <p class="text-red-400 text-[10px] mt-1">{fieldErrors.species[0]}</p>}
+        </div>
+      </section>
+
+      <!-- Narrative card -->
+      <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+        <div class="flex items-center gap-2">
+          <svg class="w-3 h-3 text-primary" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1.5 2.5h9v1H1.5v-1zm0 2.5h9v1h-9v-1zm0 2.5h6v1h-6v-1z" fill="currentColor"/>
+          </svg>
+          <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Narrative</p>
+        </div>
+        <div>
+          <label for="field-description" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Description / Personality</label>
+          <textarea
+            id="field-description"
+            name="description"
+            rows="5"
+            class="w-full bg-surface-container-lowest border border-outline-variant/20 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50 resize-none"
+          ></textarea>
+        </div>
+      </section>
+
+      <!-- Metrics & Pricing card -->
+      <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+        <div class="flex items-center gap-2">
+          <svg class="w-3 h-3 text-primary" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 1a5 5 0 100 10A5 5 0 006 1zm.5 7.5h-1V5.5h1V8.5zm0-4h-1v-1h1v1z" fill="currentColor"/>
+          </svg>
+          <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Metrics & Pricing</p>
+        </div>
+
+        <!-- Price input -->
+        <div>
+          <label for="field-price" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Price</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/50 text-sm">$</span>
+            <input
+              type="number"
+              name="priceInCents"
+              id="field-price"
+              value="0"
+              step="1"
+              min="0"
+              class="w-full bg-surface-container-lowest border border-outline-variant/20 text-on-surface text-sm pl-7 pr-3 py-2 rounded-md focus:outline-none focus:border-primary/50"
+            />
+          </div>
+        </div>
+
+        <!-- Availability segmented control -->
+        <fieldset class="border-0 p-0 m-0 flex flex-col gap-2">
+          <legend class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Availability</legend>
+          <div class="flex rounded-md overflow-hidden border border-outline-variant/20">
+            <button
+              type="button"
+              id="status-available"
+              aria-pressed="true"
+              class="status-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors bg-primary/10 text-primary shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]"
+              onclick="document.getElementById('available-hidden').value='true'; updateStatus(this, false)"
+            >
+              Available
+            </button>
+            <button
+              type="button"
+              id="status-sold"
+              aria-pressed="false"
+              class="status-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors bg-surface-container-lowest text-on-surface/60"
+              onclick="document.getElementById('available-hidden').value='false'; updateStatus(this, true)"
+            >
+              Sold
+            </button>
+            <input type="hidden" name="available" id="available-hidden" value="true" />
+          </div>
+        </fieldset>
+
+        <!-- Featured toggle -->
+        <div class="flex items-center justify-between bg-surface-container rounded-lg px-4 py-4">
+          <div>
+            <p class="text-xs uppercase tracking-[0.6px] text-on-surface font-medium mb-1">Featured Specimen</p>
+            <p class="text-on-surface/60 text-[10px]">Highlight this specimen on the public landing page gallery.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <span class="sr-only">Featured Specimen</span>
+            <input type="checkbox" name="featured" value="true" class="sr-only peer" />
+            <div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:bg-primary/40 peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-on-surface after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:bg-primary"></div>
+          </label>
+        </div>
+
+        <!-- Submit -->
+        <div class="pt-2">
+          <button type="submit" class="w-full bg-tertiary text-on-tertiary font-bold text-sm px-6 py-3 rounded-md hover:bg-tertiary/90 transition-colors">
+            Create Specimen
+          </button>
+        </div>
+      </section>
+
     </form>
   </div>
+
+  <script is:inline>
+    const nameInput = document.getElementById('field-name');
+    const slugInput = document.getElementById('field-slug');
+    let userEditedSlug = false;
+
+    slugInput.addEventListener('input', () => { userEditedSlug = true; });
+    nameInput.addEventListener('input', () => {
+      if (userEditedSlug) return;
+      slugInput.value = nameInput.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+    });
+
+    function updateStatus(activeBtn, isSoldVariant) {
+      document.querySelectorAll('.status-btn').forEach(btn => {
+        btn.classList.remove('bg-primary/10', 'text-primary', 'bg-surface-container', 'text-on-surface', 'shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]');
+        btn.classList.add('bg-surface-container-lowest', 'text-on-surface/60');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      activeBtn.classList.remove('bg-surface-container-lowest', 'text-on-surface/60');
+      if (isSoldVariant) {
+        activeBtn.classList.add('bg-surface-container', 'text-on-surface');
+      } else {
+        activeBtn.classList.add('bg-primary/10', 'text-primary', 'shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]');
+      }
+      activeBtn.setAttribute('aria-pressed', 'true');
+    }
+  </script>
 </AdminLayout>

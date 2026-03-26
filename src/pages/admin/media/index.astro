@@ -1,7 +1,6 @@
 ---
 // src/pages/admin/media/index.astro
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import Button from '../../../components/ui/Button.astro';
 import { r2Key } from '../../../lib/r2';
 import { env } from 'cloudflare:workers';
 import type { R2Bucket } from '@cloudflare/workers-types';
@@ -18,30 +17,52 @@ if (Astro.request.method === 'POST') {
   }
 }
 
-const uploaded = new URL(Astro.request.url).searchParams.get('uploaded');
+const uploadedKey = new URL(Astro.request.url).searchParams.get('uploaded');
 ---
 <AdminLayout title="Media">
-  {uploaded && (
-    <div class="mb-6 p-4 bg-primary/10 border border-primary/30 rounded text-sm">
-      <p class="text-primary font-medium">Upload successful.</p>
-      <p class="text-on-surface-variant text-xs mt-1 font-mono break-all">Key: {uploaded}</p>
-      <p class="text-on-surface-variant text-xs mt-1">Use this key when assigning an image to a snake.</p>
+  <div class="mb-8">
+    <p class="text-primary text-[10px] uppercase tracking-[3px] font-bold mb-2">Asset Management</p>
+    <h1 class="font-noto-serif text-on-surface text-4xl font-bold tracking-tight mb-2">Media Library</h1>
+    <p class="text-on-surface/60 text-sm">Upload and manage images for your specimen collection.</p>
+  </div>
+
+  {uploadedKey && (
+    <div class="bg-surface-container-low rounded-lg p-6 border border-outline-variant/5 mb-8">
+      <div class="aspect-video max-w-sm rounded-sm overflow-hidden mb-4 bg-surface-container-lowest">
+        <img src={`/api/r2/image?key=${encodeURIComponent(uploadedKey)}`} alt="Uploaded image" class="w-full h-full object-contain" />
+      </div>
+      <p class="text-primary text-xs uppercase tracking-[1.2px] font-bold mb-2">Upload Successful — R2 Key</p>
+      <div class="flex items-center gap-2">
+        <code class="flex-1 bg-surface-container-lowest text-on-surface/60 font-mono text-xs px-3 py-2 rounded-md break-all">{uploadedKey}</code>
+        <button
+          onclick={`navigator.clipboard.writeText('${uploadedKey}').then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy', 1500); })`}
+          class="shrink-0 text-primary text-xs font-bold uppercase tracking-[1px] hover:text-primary/80 transition-colors px-3 py-2 bg-primary/10 rounded-md"
+        >
+          Copy
+        </button>
+      </div>
+      <p class="text-on-surface/40 text-xs mt-2">Paste this key into a specimen's Primary Image Key field.</p>
     </div>
   )}
-  <div class="max-w-lg">
-    <form method="POST" enctype="multipart/form-data" class="flex flex-col gap-6">
-      <div class="flex flex-col gap-1.5">
-        <label for="file" class="text-xs uppercase tracking-widest text-on-surface-variant font-medium">Select Image</label>
-        <input
-          id="file"
-          type="file"
-          name="file"
-          accept="image/*"
-          required
-          class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded file:mr-4 file:py-1 file:px-3 file:rounded file:text-xs file:bg-surface-container-high file:text-on-surface file:border-0 file:cursor-pointer"
-        />
+
+  <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8">
+    <div class="flex items-center gap-2 mb-6">
+      <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Upload Image</p>
+    </div>
+    <form method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+      <div class="bg-surface-container-lowest rounded-md border border-outline-variant/15 flex items-center justify-between px-4 py-5">
+        <div>
+          <p class="text-on-surface text-xs font-bold uppercase tracking-wide">Select Image</p>
+          <p class="text-on-surface/50 text-[10px]">Max size: 10MB · JPG, PNG, WebP</p>
+        </div>
+        <label for="file-input" class="text-primary text-[10px] uppercase tracking-[1px] font-bold hover:text-primary/80 transition-colors cursor-pointer">
+          Browse
+          <input id="file-input" type="file" name="file" accept="image/*" required class="sr-only" />
+        </label>
       </div>
-      <Button type="submit" variant="primary">Upload to R2</Button>
+      <button type="submit" class="bg-primary text-on-primary font-bold text-sm px-6 py-3 rounded-md hover:bg-primary/90 transition-colors w-full">
+        Upload Image
+      </button>
     </form>
-  </div>
+  </section>
 </AdminLayout>

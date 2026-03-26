@@ -105,5 +105,9 @@ Set secrets: `npx wrangler secret put CLERK_SECRET_KEY`
 - R2 bucket: `serpents-edge-assets`
 - Workers binding names: `DB` (D1), `ASSETS_BUCKET` (R2)
 
+## PR and Commit Standards
+- Never include "Generated with Claude Code", "Co-Authored-By: Claude", or any AI attribution in PR descriptions, commit messages, or code comments
+- PR bodies and commit messages should read as written by the developer
+
 ## Implementation Plan
 Full plan at: `docs/superpowers/plans/2026-03-20-serpents-edge-full-stack.md`

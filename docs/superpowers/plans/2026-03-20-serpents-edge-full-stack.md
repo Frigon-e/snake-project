@@ -16,7 +16,7 @@ Before starting:
 - [ ] Confirm you have a Cloudflare account with D1, R2, and Workers access
 - [ ] Confirm you have a Clerk account and an application created (copy Publishable Key + Secret Key)
 - [ ] Confirm you have a Tailwind UI Plus license at `tailwindcss.com/plus/ui-blocks`
-- [ ] Note: The Stitch MCP requires additional Google auth setup — see **Appendix: Stitch Setup**
+- [ ] Figma MCP is configured via `plugin:figma` — see **Appendix A: Figma MCP Usage**
 
 ---
 
@@ -1920,48 +1920,40 @@ git commit -m "fix: resolve any type errors found during full build check"
 
 ---
 
-## Task 16: Stitch UI Integration
+## Task 16: Figma UI Integration
 
-**Status:** The Stitch MCP returns an auth error. This is a Google OAuth configuration issue. Use the manual workflow below.
+**Status:** Figma MCP is configured and authenticated. Use `mcp__plugin_figma_figma__get_design_context` with the Snake Project file key.
 
-- [ ] **Step 1: Access your Stitch project**
+- [x] **Step 1: Get the Snake Project file key**
 
-Visit: `https://stitch.withgoogle.com/projects/13100941290012229994`
+File key: `hluobF92AIfv489ZzBw1Cu` (confirmed, added to `CLAUDE.md`)
 
-- [ ] **Step 2: Export screens**
+- [ ] **Step 2: Fetch screens via Figma MCP**
 
-For each screen in the project, use Stitch's export function to get HTML/CSS. Map screens to components:
+Use `mcp__plugin_figma_figma__get_design_context` with `fileKey: hluobF92AIfv489ZzBw1Cu` per component. Map to Astro components:
 
-| Stitch Screen | Astro Component |
-|---|---|
-| Homepage hero | `src/pages/index.astro` |
-| Snake grid | `src/components/snakes/SnakeGrid.astro` |
-| Snake detail | `src/pages/snakes/[slug].astro` |
-| Admin dashboard | `src/pages/admin/index.astro` |
-| Snake create/edit form | `src/pages/admin/snakes/new.astro` |
+| Figma Frame | Node ID | Astro Component |
+|---|---|---|
+| Top Navigation | `3:167` | `src/components/layout/Header.astro` |
+| Header / Hero | `3:3` | `src/pages/index.astro` |
+| Bento Grid Collection | `3:21` | `src/components/snakes/SnakeCard.astro` + `src/pages/index.astro` |
+| About Us | `3:119` | `src/pages/index.astro` |
+| Call to Action | `3:150` | `src/pages/index.astro` |
+| Footer | `3:93` | `src/components/layout/Footer.astro` |
 
-- [ ] **Step 3: Adapt Stitch HTML to Astro + design tokens**
+- [ ] **Step 3: Adapt Figma output to Astro + design tokens**
 
-When applying Stitch exports, replace hard-coded colors with design tokens from `DESIGN.md`. The color mapping is:
+When applying Figma designs, replace hard-coded colors with design tokens from `DESIGN.md`. The color mapping is:
 - Dark backgrounds → `bg-surface` / `bg-surface-container`
 - Text → `text-on-surface` / `text-on-surface-variant`
 - Accent green → `text-primary` / `bg-primary`
 - Accent gold → `text-tertiary` / `bg-tertiary` (conversion actions only)
 
-- [ ] **Step 4: Update CLAUDE.md once Stitch MCP auth is resolved**
-
-Add to `CLAUDE.md`:
-```markdown
-## Stitch MCP
-Project ID: `13100941290012229994`
-Tools: `mcp__stitch__list_screens`, `mcp__stitch__get_screen`
-```
-
-- [ ] **Step 5: Commit Stitch changes**
+- [ ] **Step 4: Commit Figma UI changes**
 
 ```bash
 git add src/
-git commit -m "feat: apply Stitch UI designs to components"
+git commit -m "feat: apply Figma UI designs to components"
 ```
 
 ---
@@ -2032,17 +2024,21 @@ git push origin main --tags
 
 ---
 
-## Appendix A: Stitch MCP Setup
+## Appendix A: Figma MCP Usage
 
-To use the Stitch MCP for pulling UI designs:
+The Figma MCP is configured and authenticated via the `plugin:figma` plugin. Key tools:
 
-1. Check `.mcp.json` for the `stitch` server configuration
-2. Ensure Google OAuth credentials are valid — the server requires a Google account token for the account that owns project `13100941290012229994`
-3. Once authenticated:
-   ```
-   mcp__stitch__list_screens({ projectId: "13100941290012229994" })
-   mcp__stitch__get_screen({ name: "projects/13100941290012229994/screens/{screenId}", ... })
-   ```
+1. `mcp__plugin_figma_figma__whoami` — verify authentication
+2. `mcp__plugin_figma_figma__get_metadata` — list nodes/frames in a file
+3. `mcp__plugin_figma_figma__get_design_context` — fetch component code + screenshot + hints
+4. `mcp__plugin_figma_figma__get_screenshot` — visual snapshot of any node
+
+Snake Project file key: `hluobF92AIfv489ZzBw1Cu`
+
+Example call:
+```
+mcp__plugin_figma_figma__get_design_context({ fileKey: "hluobF92AIfv489ZzBw1Cu", nodeId: "3:3" })
+```
 
 ---
 

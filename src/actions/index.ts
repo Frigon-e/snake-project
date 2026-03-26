@@ -1,9 +1,15 @@
 // src/actions/index.ts
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
+import { env } from 'cloudflare:workers';
+import type { D1Database } from '@cloudflare/workers-types';
 import { createDb } from '../db/client';
 import { inquiries, snakes, traitChips } from '../db/schema';
 import { eq } from 'drizzle-orm';
+
+function getDb() {
+  return createDb((env as unknown as { DB: D1Database }).DB);
+}
 
 export const server = {
   submitInquiry: defineAction({
@@ -14,8 +20,8 @@ export const server = {
       email: z.string().email('Valid email required'),
       message: z.string().min(10, 'Message must be at least 10 characters'),
     }),
-    handler: async (input, context) => {
-      const db = createDb(context.locals.runtime.env.DB);
+    handler: async (input) => {
+      const db = getDb();
       await db.insert(inquiries).values({
         snakeId: input.snakeId ?? null,
         name: input.name,
@@ -37,8 +43,8 @@ export const server = {
       available: z.coerce.boolean().default(false),
       featured: z.coerce.boolean().default(false),
     }),
-    handler: async (input, context) => {
-      const db = createDb(context.locals.runtime.env.DB);
+    handler: async (input) => {
+      const db = getDb();
       const [snake] = await db.insert(snakes).values(input).returning();
       return { snake };
     },
@@ -56,8 +62,8 @@ export const server = {
       available: z.coerce.boolean().default(false),
       featured: z.coerce.boolean().default(false),
     }),
-    handler: async ({ id, ...data }, context) => {
-      const db = createDb(context.locals.runtime.env.DB);
+    handler: async ({ id, ...data }) => {
+      const db = getDb();
       await db.update(snakes).set({ ...data, updatedAt: new Date() }).where(eq(snakes.id, id));
       return { success: true };
     },
@@ -66,8 +72,8 @@ export const server = {
   deleteSnake: defineAction({
     accept: 'form',
     input: z.object({ id: z.string() }),
-    handler: async ({ id }, context) => {
-      const db = createDb(context.locals.runtime.env.DB);
+    handler: async ({ id }) => {
+      const db = getDb();
       await db.delete(snakes).where(eq(snakes.id, id));
       return { success: true };
     },
@@ -80,8 +86,8 @@ export const server = {
       label: z.string().min(1),
       type: z.enum(['dominant', 'recessive', 'codominant']).default('dominant'),
     }),
-    handler: async (input, context) => {
-      const db = createDb(context.locals.runtime.env.DB);
+    handler: async (input) => {
+      const db = getDb();
       const [trait] = await db.insert(traitChips).values(input).returning();
       return { trait };
     },
@@ -90,8 +96,8 @@ export const server = {
   deleteTrait: defineAction({
     accept: 'form',
     input: z.object({ id: z.string() }),
-    handler: async ({ id }, context) => {
-      const db = createDb(context.locals.runtime.env.DB);
+    handler: async ({ id }) => {
+      const db = getDb();
       await db.delete(traitChips).where(eq(traitChips.id, id));
       return { success: true };
     },

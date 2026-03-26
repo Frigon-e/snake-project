@@ -10,7 +10,7 @@ interface Props {
 const { snake } = Astro.props;
 const imageUrl = snake.primaryImageKey
   ? `/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`
-  : '/placeholder-snake.jpg';
+  : '/placeholder-snake.svg';
 ---
 <article class="bg-surface-container-low rounded overflow-hidden hover:bg-surface-container-high transition-colors group">
   <div class="aspect-[4/3] overflow-hidden bg-surface-container-lowest">
@@ -29,7 +29,7 @@ const imageUrl = snake.primaryImageKey
         {snake.available ? 'Available' : 'Sold'}
       </Badge>
     </div>
-    <p class="text-on-surface-variant text-xs uppercase tracking-widest">{snake.species}</p>
+    <p class="text-primary text-xs uppercase tracking-widest">{snake.species}</p>
     {snake.traits && snake.traits.length > 0 && (
       <div class="flex flex-wrap gap-1.5">
         {snake.traits.map(t => (

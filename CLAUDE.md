@@ -50,10 +50,20 @@ Snake breeding e-commerce/showcase site with a premium editorial aesthetic ("The
 - Config in `src/live.config.ts`
 - Pages query Drizzle directly for richer query capabilities
 
-### Stitch MCP (UI Designs)
-- Project ID: `13100941290012229994`
-- Tools: `mcp__stitch__list_screens`, `mcp__stitch__get_screen`
-- Note: Requires Google OAuth auth to be configured in MCP settings
+### Figma MCP (UI Designs)
+- File key: `hluobF92AIfv489ZzBw1Cu`
+- Tools: `mcp__plugin_figma_figma__get_design_context`, `mcp__plugin_figma_figma__get_screenshot`, `mcp__plugin_figma_figma__get_metadata`
+- Usage: Pass `fileKey` and `nodeId` to `get_design_context` to pull component designs
+
+Key node IDs (Landing Page canvas `0:1` → frame `3:2`):
+| Section | Node ID |
+|---|---|
+| Top Navigation | `3:167` |
+| Header / Hero | `3:3` |
+| Bento Grid Collection | `3:21` |
+| About Us | `3:119` |
+| Call to Action | `3:150` |
+| Footer | `3:93` |
 
 ## Commands
 ```bash
@@ -94,6 +104,10 @@ Set secrets: `npx wrangler secret put CLERK_SECRET_KEY`
 - D1 database: `serpents-edge-db`
 - R2 bucket: `serpents-edge-assets`
 - Workers binding names: `DB` (D1), `ASSETS_BUCKET` (R2)
+
+## PR and Commit Standards
+- Never include "Generated with Claude Code", "Co-Authored-By: Claude", or any AI attribution in PR descriptions, commit messages, or code comments
+- PR bodies and commit messages should read as written by the developer
 
 ## Implementation Plan
 Full plan at: `docs/superpowers/plans/2026-03-20-serpents-edge-full-stack.md`

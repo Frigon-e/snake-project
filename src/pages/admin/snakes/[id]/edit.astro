@@ -96,6 +96,40 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
             />
             {fieldErrors.species && <p class="text-red-400 text-[10px] mt-1">{fieldErrors.species[0]}</p>}
           </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
+              <fieldset>
+                <legend class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium mb-2">Sex</legend>
+                <div class="flex rounded-md overflow-hidden border border-outline-variant/20">
+                  <button type="button" id="sex-male"
+                    class:list={['sex-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
+                      snake.sex === 'male' ? 'bg-primary/10 text-primary' : 'bg-surface-container-lowest text-on-surface/60'
+                    ]}
+                    onclick="updateSex('male')">
+                    Male
+                  </button>
+                  <button type="button" id="sex-female"
+                    class:list={['sex-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
+                      snake.sex === 'female' ? 'bg-primary/10 text-primary' : 'bg-surface-container-lowest text-on-surface/60'
+                    ]}
+                    onclick="updateSex('female')">
+                    Female
+                  </button>
+                </div>
+                <input type="hidden" name="sex" id="sex-hidden" value={snake.sex ?? ''} />
+              </fieldset>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="hatch-date" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Hatch Date</label>
+              <input
+                type="date"
+                id="hatch-date"
+                name="hatchDate"
+                value={snake.hatchDate ?? ''}
+                class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50"
+              />
+            </div>
+          </div>
         </section>
 
         <!-- Genotype Breakdown card -->
@@ -146,6 +180,64 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
           </div>
         </section>
 
+        <!-- Personality & Temperament card -->
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Personality & Temperament</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label for="personality" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Personality Notes</label>
+            <textarea
+              id="personality"
+              name="personality"
+              rows="4"
+              placeholder="Describe the specimen's handling temperament, disposition, and notable behavioral traits..."
+              class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md resize-none focus:outline-none focus:border-primary/50"
+            >{snake.personality ?? ''}</textarea>
+          </div>
+        </section>
+
+        <!-- Health & Feeding Habits card -->
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary shrink-0"><path d="M9 12h6m-3-3v6m-7 4h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Health & Feeding Habits</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label for="feeding-notes" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Feeding Notes</label>
+            <textarea
+              id="feeding-notes"
+              name="feedingNotes"
+              rows="3"
+              placeholder="Feeding history, prey preference, feeding response..."
+              class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md resize-none focus:outline-none focus:border-primary/50"
+            >{snake.feedingNotes ?? ''}</textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
+              <label for="diet" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Diet</label>
+              <input type="text" id="diet" name="diet" value={snake.diet ?? ''} placeholder="e.g. Frozen/thawed mice"
+                class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="shed-frequency" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Shed Frequency</label>
+              <input type="text" id="shed-frequency" name="shedFrequency" value={snake.shedFrequency ?? ''} placeholder="e.g. Every 4–6 weeks"
+                class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="temperature" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Temperature</label>
+              <input type="text" id="temperature" name="temperature" value={snake.temperature ?? ''} placeholder="e.g. 88°F hot / 78°F cool"
+                class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="humidity" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Humidity</label>
+              <input type="text" id="humidity" name="humidity" value={snake.humidity ?? ''} placeholder="e.g. 50–60%"
+                class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" />
+            </div>
+          </div>
+        </section>
+
         <!-- Narrative card -->
         <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
           <div class="flex items-center gap-2">
@@ -165,6 +257,25 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
           </div>
         </section>
 
+        <!-- Complementary Genetics card -->
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary shrink-0"><path d="M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1"/></svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Complementary Genetics</p>
+          </div>
+          <p class="text-on-surface/60 text-xs leading-relaxed">Reference specimens with complementary genetics that pair well with this specimen.</p>
+          <div class="flex flex-col gap-2">
+            <label for="complementary-genetics" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Related Specimen Slugs or Notes</label>
+            <textarea
+              id="complementary-genetics"
+              name="complementaryGenetics"
+              rows="3"
+              placeholder="e.g. banana-lesser-ball-python, pastel-spider-female (comma-separated slugs or notes)"
+              class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md resize-none focus:outline-none focus:border-primary/50"
+            >{snake.complementaryGenetics ?? ''}</textarea>
+          </div>
+        </section>
+
         <!-- Metrics & Pricing card -->
         <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
           <div class="flex items-center gap-2">
@@ -172,6 +283,20 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
               <path d="M6 1a5 5 0 100 10A5 5 0 006 1zm.5 7.5h-1V5.5h1V8.5zm0-4h-1v-1h1v1z" fill="currentColor"/>
             </svg>
             <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Metrics & Pricing</p>
+          </div>
+
+          <!-- Weight input -->
+          <div class="flex flex-col gap-2">
+            <label for="weight-grams" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Weight (Grams)</label>
+            <input
+              type="number"
+              id="weight-grams"
+              name="weightGrams"
+              value={snake.weightGrams ?? ''}
+              min="0"
+              placeholder="e.g. 450"
+              class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50"
+            />
           </div>
 
           <!-- Price input -->
@@ -186,27 +311,42 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
           </div>
 
           <!-- Availability toggle -->
-          <fieldset class="border-0 p-0 m-0 flex flex-col gap-2">
-            <legend class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Availability</legend>
+          <fieldset>
+            <legend class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium mb-2">Availability</legend>
             <div class="flex rounded-md overflow-hidden border border-outline-variant/20">
               <button type="button" id="status-available"
-                aria-pressed={snake.available}
+                aria-pressed={(snake.status === 'available' || (!snake.status && snake.available)) ? 'true' : 'false'}
                 class:list={['status-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
-                  snake.available ? 'bg-primary/10 text-primary shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]' : 'bg-surface-container-lowest text-on-surface/60'
+                  (snake.status === 'available' || (!snake.status && snake.available))
+                    ? 'bg-primary/10 text-primary shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]'
+                    : 'bg-surface-container-lowest text-on-surface/60'
                 ]}
-                onclick="document.getElementById('available-hidden').value='true'; updateStatus(this, false)">
+                onclick="updateStatus(this, false)">
                 Available
               </button>
-              <button type="button" id="status-sold"
-                aria-pressed={!snake.available}
+              <button type="button" id="status-reserved"
+                aria-pressed={snake.status === 'reserved' ? 'true' : 'false'}
                 class:list={['status-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
-                  !snake.available ? 'bg-surface-container text-on-surface' : 'bg-surface-container-lowest text-on-surface/60'
+                  snake.status === 'reserved'
+                    ? 'bg-secondary-container/30 text-secondary shadow-[0px_0px_0px_1px_rgba(100,120,110,0.3)]'
+                    : 'bg-surface-container-lowest text-on-surface/60'
                 ]}
-                onclick="document.getElementById('available-hidden').value='false'; updateStatus(this, true)">
+                onclick="updateStatus(this, false)">
+                Reserved
+              </button>
+              <button type="button" id="status-sold"
+                aria-pressed={(snake.status === 'sold' || (!snake.status && !snake.available)) ? 'true' : 'false'}
+                class:list={['status-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
+                  (snake.status === 'sold' || (!snake.status && !snake.available))
+                    ? 'bg-surface-container text-on-surface'
+                    : 'bg-surface-container-lowest text-on-surface/60'
+                ]}
+                onclick="updateStatus(this, true)">
                 Sold
               </button>
-              <input type="hidden" name="available" id="available-hidden" value={snake.available ? 'true' : 'false'} />
             </div>
+            <input type="hidden" name="status" id="status-hidden" value={snake.status ?? (snake.available ? 'available' : 'sold')} />
+            <input type="hidden" name="available" id="available-hidden" value={snake.available ? 'true' : 'false'} />
           </fieldset>
 
           <!-- Featured toggle -->
@@ -273,18 +413,45 @@ const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? up
 
   <script is:inline>
     function updateStatus(activeBtn, isSoldVariant) {
+      const statusHidden = document.getElementById('status-hidden');
+      const availableHidden = document.getElementById('available-hidden');
       document.querySelectorAll('.status-btn').forEach(btn => {
-        btn.classList.remove('bg-primary/10', 'text-primary', 'bg-surface-container', 'text-on-surface', 'shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]');
+        btn.classList.remove(
+          'bg-primary/10', 'text-primary',
+          'bg-secondary-container/30', 'text-secondary',
+          'bg-surface-container', 'text-on-surface',
+          'shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]',
+          'shadow-[0px_0px_0px_1px_rgba(100,120,110,0.3)]'
+        );
         btn.classList.add('bg-surface-container-lowest', 'text-on-surface/60');
         btn.setAttribute('aria-pressed', 'false');
       });
       activeBtn.classList.remove('bg-surface-container-lowest', 'text-on-surface/60');
-      if (isSoldVariant) {
-        activeBtn.classList.add('bg-surface-container', 'text-on-surface');
-      } else {
-        activeBtn.classList.add('bg-primary/10', 'text-primary', 'shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]');
-      }
       activeBtn.setAttribute('aria-pressed', 'true');
+      const id = activeBtn.id;
+      if (id === 'status-available') {
+        activeBtn.classList.add('bg-primary/10', 'text-primary', 'shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]');
+        statusHidden.value = 'available';
+        availableHidden.value = 'true';
+      } else if (id === 'status-reserved') {
+        activeBtn.classList.add('bg-secondary-container/30', 'text-secondary', 'shadow-[0px_0px_0px_1px_rgba(100,120,110,0.3)]');
+        statusHidden.value = 'reserved';
+        availableHidden.value = 'false';
+      } else {
+        activeBtn.classList.add('bg-surface-container', 'text-on-surface');
+        statusHidden.value = 'sold';
+        availableHidden.value = 'false';
+      }
+    }
+    function updateSex(value) {
+      document.getElementById('sex-hidden').value = value;
+      document.querySelectorAll('.sex-btn').forEach(btn => {
+        btn.classList.remove('bg-primary/10', 'text-primary');
+        btn.classList.add('bg-surface-container-lowest', 'text-on-surface/60');
+      });
+      const activeId = value === 'male' ? 'sex-male' : 'sex-female';
+      document.getElementById(activeId).classList.remove('bg-surface-container-lowest', 'text-on-surface/60');
+      document.getElementById(activeId).classList.add('bg-primary/10', 'text-primary');
     }
   </script>
 </AdminLayout>

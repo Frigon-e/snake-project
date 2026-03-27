@@ -8,6 +8,13 @@
       "when": 1774048823553,
       "tag": "0000_flaky_giant_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1774566656516,
+      "tag": "0001_friendly_vampiro",
+      "breakpoints": true
     }
   ]
 }

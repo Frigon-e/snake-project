@@ -1,0 +1,11 @@
+---
+// src/pages/admin/settings.astro
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { UserProfile } from '@clerk/astro/components';
+---
+
+<AdminLayout title="Settings" noPadding>
+  <div class="h-full flex items-start justify-center p-10">
+    <UserProfile />
+  </div>
+</AdminLayout>

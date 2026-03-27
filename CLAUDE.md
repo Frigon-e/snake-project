@@ -65,6 +65,12 @@ Key node IDs (Landing Page canvas `0:1` → frame `3:2`):
 | Call to Action | `3:150` |
 | Footer | `3:93` |
 
+Admin screens (Admin canvas):
+| Screen | Node ID |
+|---|---|
+| Admin Dashboard | `3:882` |
+| Edit Specimen | `3:180` |
+
 ## Commands
 ```bash
 npm run dev              # Astro dev server (http://localhost:4321)

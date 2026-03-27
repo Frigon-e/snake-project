@@ -2,10 +2,6 @@
 // src/pages/admin/snakes/[id]/edit.astro
 // [id] uses the internal UUID — links from admin snake list use snake.id
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
-import FormField from '../../../../components/ui/FormField.astro';
-import Input from '../../../../components/ui/Input.astro';
-import Button from '../../../../components/ui/Button.astro';
-import Chip from '../../../../components/ui/Chip.astro';
 import { actions, isInputError } from 'astro:actions';
 import { createDb } from '../../../../db/client';
 import { snakes, traitChips } from '../../../../db/schema';
@@ -27,75 +23,435 @@ if (updateResult && !updateResult.error) {
 const fieldErrors = updateResult?.error && isInputError(updateResult.error) ? updateResult.error.fields : {};
 ---
 <AdminLayout title={`Edit: ${snake.name}`}>
-  <div class="max-w-xl flex flex-col gap-12">
-    <!-- Snake edit form -->
-    <form method="POST" action={actions.updateSnake} class="flex flex-col gap-6">
-      <input type="hidden" name="id" value={snake.id} />
-      <FormField label="Name" name="name" required error={fieldErrors.name?.[0]}>
-        <Input name="name" required value={snake.name} error={fieldErrors.name?.[0]} />
-      </FormField>
-      <FormField label="Slug" name="slug" required error={fieldErrors.slug?.[0]}>
-        <Input name="slug" required value={snake.slug} error={fieldErrors.slug?.[0]} />
-      </FormField>
-      <FormField label="Species" name="species" required error={fieldErrors.species?.[0]}>
-        <Input name="species" required value={snake.species} error={fieldErrors.species?.[0]} />
-      </FormField>
-      <FormField label="Description" name="description">
-        <textarea
-          name="description"
-          rows="4"
-          class="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded focus:outline-none focus:shadow-[0_0_8px_rgba(158,209,189,0.3)] focus:border-primary/50 resize-none"
-        >{snake.description}</textarea>
-      </FormField>
-      <FormField label="Price (cents)" name="priceInCents">
-        <Input name="priceInCents" type="number" value={String(snake.priceInCents)} />
-      </FormField>
-      <div class="flex gap-6">
-        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
-          <input type="checkbox" name="available" value="true" checked={snake.available} class="accent-primary" />
-          Available
-        </label>
-        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
-          <input type="checkbox" name="featured" value="true" checked={snake.featured} class="accent-primary" />
-          Featured
-        </label>
-      </div>
-      <div class="flex gap-4">
-        <Button type="submit" variant="primary">Save Changes</Button>
-        <Button href="/admin/snakes" variant="ghost">Cancel</Button>
-      </div>
-    </form>
-
-    <!-- Trait chip manager -->
+  <!-- Page header -->
+  <div class="flex items-end justify-between mb-10">
     <div>
-      <h2 class="font-noto-serif text-on-surface text-xl mb-6">Genetic Traits</h2>
-      {traits.length > 0 && (
-        <div class="flex flex-wrap gap-2 mb-6">
-          {traits.map(t => (
-            <div class="flex items-center gap-1.5">
-              <Chip type={t.type}>{t.label}</Chip>
-              <form method="POST" action={actions.deleteTrait} class="inline">
-                <input type="hidden" name="id" value={t.id} />
-                <button type="submit" class="text-red-400 text-xs hover:underline leading-none">×</button>
-              </form>
-            </div>
-          ))}
-        </div>
-      )}
-      <form method="POST" action={actions.addTrait} class="flex gap-3 items-end flex-wrap">
-        <input type="hidden" name="snakeId" value={snake.id} />
-        <FormField label="Trait label" name="label">
-          <Input name="label" placeholder="e.g. Banana" />
-        </FormField>
-        <FormField label="Type" name="type">
-          <select name="type" class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded focus:outline-none focus:border-primary/50">
-            <option value="dominant">Dominant</option>
-            <option value="recessive">Recessive</option>
-            <option value="codominant">Codominant</option>
-          </select>
-        </FormField>
-        <Button type="submit" variant="ghost">Add Trait</Button>
-      </form>
+      <div class="bg-secondary-container/30 inline-flex px-2 py-1 rounded-sm mb-3">
+        <span class="text-primary text-[10px] font-bold uppercase tracking-[2px]">Specimen Management</span>
+      </div>
+      <h1 class="font-noto-serif text-on-surface text-5xl font-bold tracking-tight mb-3">Edit Specimen</h1>
+      <p class="text-on-surface/70 text-base">Update genetic traits, pricing, and visibility for this specimen.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/admin/snakes" class="bg-surface-container text-on-surface font-medium text-sm px-6 py-[10px] rounded-md hover:bg-surface-container-high transition-colors">
+        Cancel
+      </a>
+      <button type="submit" form="snake-edit-form" class="bg-tertiary text-on-tertiary font-bold text-sm px-6 py-[10px] rounded-md hover:bg-tertiary/90 transition-colors">
+        Save Changes
+      </button>
     </div>
   </div>
+
+  {updateResult?.error && !isInputError(updateResult.error) && (
+    <div class="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-md">
+      An error occurred while saving. Please try again.
+    </div>
+  )}
+
+  <!-- 12-column grid -->
+  <form id="snake-edit-form" method="POST" action={actions.updateSnake}>
+    <input type="hidden" name="id" value={snake.id} />
+
+    <div class="grid grid-cols-12 gap-8">
+      <!-- Left column: form sections -->
+      <div class="col-span-7 flex flex-col gap-6">
+
+        <!-- Genetic Profile card -->
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg class="w-3 h-3 text-primary" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 1C3.24 1 1 3.24 1 6s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 1.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 7.1c-1.25 0-2.36-.63-3-1.6.01-1 2-1.55 3-1.55s2.99.55 3 1.55c-.64.97-1.75 1.6-3 1.6z" fill="currentColor"/>
+            </svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Genetic Profile</p>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="field-name" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Name</label>
+              <input type="text" name="name" value={snake.name} id="field-name" required
+                class:list={[
+                  'w-full bg-surface-container-lowest border text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50',
+                  fieldErrors.name ? 'border-red-400/50' : 'border-outline-variant/20'
+                ]}
+              />
+              {fieldErrors.name && <p class="text-red-400 text-[10px] mt-1">{fieldErrors.name[0]}</p>}
+            </div>
+            <div>
+              <label for="field-slug" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Slug</label>
+              <input type="text" name="slug" value={snake.slug} id="field-slug" required
+                class:list={[
+                  'w-full bg-surface-container-lowest border text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50',
+                  fieldErrors.slug ? 'border-red-400/50' : 'border-outline-variant/20'
+                ]}
+              />
+              {fieldErrors.slug && <p class="text-red-400 text-[10px] mt-1">{fieldErrors.slug[0]}</p>}
+            </div>
+          </div>
+          <div>
+            <label for="field-species" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Species</label>
+            <input type="text" name="species" value={snake.species} id="field-species" required
+              class:list={[
+                'w-full bg-surface-container-lowest border text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50',
+                fieldErrors.species ? 'border-red-400/50' : 'border-outline-variant/20'
+              ]}
+            />
+            {fieldErrors.species && <p class="text-red-400 text-[10px] mt-1">{fieldErrors.species[0]}</p>}
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
+              <fieldset>
+                <legend class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium mb-2">Sex</legend>
+                <div class="flex rounded-md overflow-hidden border border-outline-variant/20">
+                  <button type="button" id="sex-male"
+                    class:list={['sex-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
+                      snake.sex === 'male' ? 'bg-primary/10 text-primary' : 'bg-surface-container-lowest text-on-surface/60'
+                    ]}
+                    onclick="updateSex('male')">
+                    Male
+                  </button>
+                  <button type="button" id="sex-female"
+                    class:list={['sex-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
+                      snake.sex === 'female' ? 'bg-primary/10 text-primary' : 'bg-surface-container-lowest text-on-surface/60'
+                    ]}
+                    onclick="updateSex('female')">
+                    Female
+                  </button>
+                </div>
+                <input type="hidden" name="sex" id="sex-hidden" value={snake.sex ?? ''} />
+              </fieldset>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="hatch-date" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Hatch Date</label>
+              <input
+                type="date"
+                id="hatch-date"
+                name="hatchDate"
+                value={snake.hatchDate ?? ''}
+                class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- Genotype Breakdown card -->
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg class="w-3 h-3 text-primary" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 2h1.5v1.5H2V2zm0 3h1.5v1.5H2V5zm0 3h1.5v1.5H2V8zm2.5-6H10v1.5H4.5V2zm0 3H10v1.5H4.5V5zm0 3H10v1.5H4.5V8z" fill="currentColor"/>
+            </svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Genotype Breakdown</p>
+          </div>
+          <div class="flex flex-wrap gap-2 items-center">
+            {traits.map(trait => (
+              <form method="POST" class="inline-flex">
+                <input type="hidden" name="id" value={trait.id} />
+                <button type="submit"
+                  formaction={actions.deleteTrait}
+                  class:list={[
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium transition-colors',
+                    trait.type === 'dominant' ? 'bg-surface-container border border-outline-variant/20 text-on-surface' : '',
+                    trait.type === 'recessive' ? 'bg-tertiary-container/30 border border-tertiary/20 text-tertiary' : '',
+                    trait.type === 'codominant' ? 'bg-secondary-container/30 border border-primary/20 text-primary' : '',
+                  ]}
+                >
+                  {trait.label} <span class="opacity-50 text-[10px]">×</span>
+                </button>
+              </form>
+            ))}
+            <!-- Add trait inline form -->
+            <details class="relative">
+              <summary class="border border-dashed border-outline-variant/40 text-on-surface/50 text-xs px-3 py-1.5 rounded-sm cursor-pointer hover:border-outline-variant/60 hover:text-on-surface/70 transition-colors list-none">
+                + Add Tag
+              </summary>
+              <div class="absolute top-full left-0 mt-2 bg-surface-container-high rounded-md p-4 z-10 shadow-xl flex flex-col gap-3 min-w-[200px]">
+                <form method="POST">
+                  <input type="hidden" name="snakeId" value={snake.id} />
+                  <input type="text" name="label" placeholder="e.g. Banana" class="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md mb-2 focus:outline-none focus:border-primary/50" required />
+                  <select name="type" class="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md mb-3 focus:outline-none focus:border-primary/50">
+                    <option value="dominant">Dominant</option>
+                    <option value="recessive">Recessive</option>
+                    <option value="codominant">Co-Dominant</option>
+                  </select>
+                  <button type="submit" formaction={actions.addTrait} class="w-full bg-primary text-on-primary text-xs font-bold py-2 rounded-md">
+                    Add
+                  </button>
+                </form>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <!-- Personality & Temperament card -->
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Personality & Temperament</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label for="personality" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Personality Notes</label>
+            <textarea
+              id="personality"
+              name="personality"
+              rows="4"
+              placeholder="Describe the specimen's handling temperament, disposition, and notable behavioral traits..."
+              class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md resize-none focus:outline-none focus:border-primary/50"
+            >{snake.personality ?? ''}</textarea>
+          </div>
+        </section>
+
+        <!-- Health & Feeding Habits card -->
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary shrink-0"><path d="M9 12h6m-3-3v6m-7 4h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Health & Feeding Habits</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label for="feeding-notes" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Feeding Notes</label>
+            <textarea
+              id="feeding-notes"
+              name="feedingNotes"
+              rows="3"
+              placeholder="Feeding history, prey preference, feeding response..."
+              class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md resize-none focus:outline-none focus:border-primary/50"
+            >{snake.feedingNotes ?? ''}</textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
+              <label for="diet" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Diet</label>
+              <input type="text" id="diet" name="diet" value={snake.diet ?? ''} placeholder="e.g. Frozen/thawed mice"
+                class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="shed-frequency" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Shed Frequency</label>
+              <input type="text" id="shed-frequency" name="shedFrequency" value={snake.shedFrequency ?? ''} placeholder="e.g. Every 4–6 weeks"
+                class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="temperature" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Temperature</label>
+              <input type="text" id="temperature" name="temperature" value={snake.temperature ?? ''} placeholder="e.g. 88°F hot / 78°F cool"
+                class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="humidity" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Humidity</label>
+              <input type="text" id="humidity" name="humidity" value={snake.humidity ?? ''} placeholder="e.g. 50–60%"
+                class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" />
+            </div>
+          </div>
+        </section>
+
+        <!-- Narrative card -->
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg class="w-3 h-3 text-primary" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1.5 2.5h9v1H1.5v-1zm0 2.5h9v1h-9v-1zm0 2.5h6v1h-6v-1z" fill="currentColor"/>
+            </svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Narrative</p>
+          </div>
+          <div>
+            <label for="field-description" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Description</label>
+            <textarea
+              name="description"
+              id="field-description"
+              rows="5"
+              class="w-full bg-surface-container-lowest border border-outline-variant/20 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50 resize-none"
+            >{snake.description}</textarea>
+          </div>
+        </section>
+
+        <!-- Complementary Genetics card -->
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary shrink-0"><path d="M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1"/></svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Complementary Genetics</p>
+          </div>
+          <p class="text-on-surface/60 text-xs leading-relaxed">Reference specimens with complementary genetics that pair well with this specimen.</p>
+          <div class="flex flex-col gap-2">
+            <label for="complementary-genetics" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Related Specimen Slugs or Notes</label>
+            <textarea
+              id="complementary-genetics"
+              name="complementaryGenetics"
+              rows="3"
+              placeholder="e.g. banana-lesser-ball-python, pastel-spider-female (comma-separated slugs or notes)"
+              class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md resize-none focus:outline-none focus:border-primary/50"
+            >{snake.complementaryGenetics ?? ''}</textarea>
+          </div>
+        </section>
+
+        <!-- Metrics & Pricing card -->
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg class="w-3 h-3 text-primary" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 1a5 5 0 100 10A5 5 0 006 1zm.5 7.5h-1V5.5h1V8.5zm0-4h-1v-1h1v1z" fill="currentColor"/>
+            </svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Metrics & Pricing</p>
+          </div>
+
+          <!-- Weight input -->
+          <div class="flex flex-col gap-2">
+            <label for="weight-grams" class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium">Weight (Grams)</label>
+            <input
+              type="number"
+              id="weight-grams"
+              name="weightGrams"
+              value={snake.weightGrams ?? ''}
+              min="0"
+              placeholder="e.g. 450"
+              class="bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm px-3 py-2 rounded-md focus:outline-none focus:border-primary/50"
+            />
+          </div>
+
+          <!-- Price input -->
+          <div>
+            <label for="field-price" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Price (USD cents)</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/50 text-sm">¢</span>
+              <input type="number" name="priceInCents" id="field-price" value={snake.priceInCents} step="1" min="0"
+                class="w-full bg-surface-container-lowest border border-outline-variant/20 text-on-surface text-sm pl-7 pr-3 py-2 rounded-md focus:outline-none focus:border-primary/50"
+              />
+            </div>
+          </div>
+
+          <!-- Availability toggle -->
+          <fieldset>
+            <legend class="text-[10px] uppercase tracking-[1px] text-on-surface/60 font-medium mb-2">Availability</legend>
+            <div class="flex rounded-md overflow-hidden border border-outline-variant/20">
+              <button type="button" id="status-available"
+                aria-pressed={(snake.status === 'available' || (!snake.status && snake.available)) ? 'true' : 'false'}
+                class:list={['status-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
+                  (snake.status === 'available' || (!snake.status && snake.available))
+                    ? 'bg-primary/10 text-primary shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]'
+                    : 'bg-surface-container-lowest text-on-surface/60'
+                ]}
+                onclick="updateStatus(this, false)">
+                Available
+              </button>
+              <button type="button" id="status-reserved"
+                aria-pressed={snake.status === 'reserved' ? 'true' : 'false'}
+                class:list={['status-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
+                  snake.status === 'reserved'
+                    ? 'bg-secondary-container/30 text-secondary shadow-[0px_0px_0px_1px_rgba(100,120,110,0.3)]'
+                    : 'bg-surface-container-lowest text-on-surface/60'
+                ]}
+                onclick="updateStatus(this, false)">
+                Reserved
+              </button>
+              <button type="button" id="status-sold"
+                aria-pressed={(snake.status === 'sold' || (!snake.status && !snake.available)) ? 'true' : 'false'}
+                class:list={['status-btn flex-1 py-3 text-[10px] font-bold uppercase tracking-[1px] transition-colors',
+                  (snake.status === 'sold' || (!snake.status && !snake.available))
+                    ? 'bg-surface-container text-on-surface'
+                    : 'bg-surface-container-lowest text-on-surface/60'
+                ]}
+                onclick="updateStatus(this, true)">
+                Sold
+              </button>
+            </div>
+            <input type="hidden" name="status" id="status-hidden" value={snake.status ?? (snake.available ? 'available' : 'sold')} />
+            <input type="hidden" name="available" id="available-hidden" value={snake.available ? 'true' : 'false'} />
+          </fieldset>
+
+          <!-- Featured toggle -->
+          <div class="flex items-center justify-between bg-surface-container rounded-lg px-4 py-4 mt-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.6px] text-on-surface font-medium mb-1">Featured Specimen</p>
+              <p class="text-on-surface/60 text-[10px]">Highlight this specimen on the public landing page gallery.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <span class="sr-only">Featured Specimen</span>
+              <input type="checkbox" name="featured" value="true" class="sr-only peer" checked={snake.featured} />
+              <div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:bg-primary/40 peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-on-surface after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:bg-primary"></div>
+            </label>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Right column: media panel -->
+      <div class="col-span-5 sticky top-4">
+        <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8 flex flex-col gap-6">
+          <div class="flex items-center gap-2">
+            <svg class="w-3 h-3 text-primary" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 1h10v10H1V1zm1 1v6.5l2.5-2.5 2 2 3-3.5V2H2zm0 8h8v-1.5l-3-3.5-2 2-2.5-2.5L2 9z" fill="currentColor"/>
+            </svg>
+            <p class="text-primary text-xs uppercase tracking-[1.8px]">Specimen Gallery</p>
+          </div>
+          <!-- Main preview -->
+          <div class="rounded bg-surface-container-lowest aspect-video overflow-hidden shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)]">
+            {snake.primaryImageKey
+              ? <img src={`/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`} alt={snake.name} class="w-full h-full object-cover" />
+              : <div class="w-full h-full flex items-center justify-center"><img src="/placeholder-snake.svg" alt="" class="w-32 opacity-20" /></div>
+            }
+          </div>
+          <!-- Upload zone -->
+          <div class="bg-surface-container-lowest rounded border border-outline-variant/15 flex items-center justify-between px-4 py-4">
+            <div class="flex items-center gap-3">
+              <div>
+                <p class="text-on-surface text-xs font-bold uppercase tracking-wide">Primary Image</p>
+                <p class="text-on-surface/60 text-[10px]">Set the primary image key</p>
+              </div>
+            </div>
+            <a href="/admin/media" class="text-primary text-[10px] uppercase tracking-[1px] font-bold hover:text-primary/80 transition-colors">Go to Media</a>
+          </div>
+          <!-- R2 key input -->
+          <div>
+            <label for="field-image-key" class="block text-[10px] uppercase tracking-[1.2px] text-on-surface/60 font-medium mb-2">Primary Image Key</label>
+            <input type="text" name="primaryImageKey" id="field-image-key" value={snake.primaryImageKey ?? ''} class="w-full bg-surface-container-lowest border border-outline-variant/20 text-on-surface text-xs font-mono px-3 py-2 rounded-md focus:outline-none focus:border-primary/50" placeholder="snakes/xxx/primary.jpg" />
+          </div>
+        </section>
+      </div>
+    </div>
+  </form>
+
+  <!-- Delete action -->
+  <div class="mt-8 pt-2 flex justify-end">
+    <form method="POST" action={actions.deleteSnake}>
+      <input type="hidden" name="id" value={snake.id} />
+      <button type="submit" class="flex items-center gap-2 text-red-400 text-xs font-bold uppercase tracking-[1.2px] hover:text-red-400/70 transition-colors">
+        Remove Specimen Record
+      </button>
+    </form>
+  </div>
+
+  <script is:inline>
+    function updateStatus(activeBtn, isSoldVariant) {
+      const statusHidden = document.getElementById('status-hidden');
+      const availableHidden = document.getElementById('available-hidden');
+      document.querySelectorAll('.status-btn').forEach(btn => {
+        btn.classList.remove(
+          'bg-primary/10', 'text-primary',
+          'bg-secondary-container/30', 'text-secondary',
+          'bg-surface-container', 'text-on-surface',
+          'shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]',
+          'shadow-[0px_0px_0px_1px_rgba(100,120,110,0.3)]'
+        );
+        btn.classList.add('bg-surface-container-lowest', 'text-on-surface/60');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      activeBtn.classList.remove('bg-surface-container-lowest', 'text-on-surface/60');
+      activeBtn.setAttribute('aria-pressed', 'true');
+      const id = activeBtn.id;
+      if (id === 'status-available') {
+        activeBtn.classList.add('bg-primary/10', 'text-primary', 'shadow-[0px_0px_0px_1px_rgba(158,209,189,0.3)]');
+        statusHidden.value = 'available';
+        availableHidden.value = 'true';
+      } else if (id === 'status-reserved') {
+        activeBtn.classList.add('bg-secondary-container/30', 'text-secondary', 'shadow-[0px_0px_0px_1px_rgba(100,120,110,0.3)]');
+        statusHidden.value = 'reserved';
+        availableHidden.value = 'false';
+      } else {
+        activeBtn.classList.add('bg-surface-container', 'text-on-surface');
+        statusHidden.value = 'sold';
+        availableHidden.value = 'false';
+      }
+    }
+    function updateSex(value) {
+      document.getElementById('sex-hidden').value = value;
+      document.querySelectorAll('.sex-btn').forEach(btn => {
+        btn.classList.remove('bg-primary/10', 'text-primary');
+        btn.classList.add('bg-surface-container-lowest', 'text-on-surface/60');
+      });
+      const activeId = value === 'male' ? 'sex-male' : 'sex-female';
+      document.getElementById(activeId).classList.remove('bg-surface-container-lowest', 'text-on-surface/60');
+      document.getElementById(activeId).classList.add('bg-primary/10', 'text-primary');
+    }
+  </script>
 </AdminLayout>

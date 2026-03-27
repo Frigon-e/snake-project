@@ -42,10 +42,24 @@ export const server = {
       priceInCents: z.coerce.number().int().min(0).default(0),
       available: z.coerce.boolean().default(false),
       featured: z.coerce.boolean().default(false),
+      status: z.enum(['available', 'reserved', 'sold']).optional(),
+      sex: z.string().optional().transform(v => v?.trim() || undefined),
+      hatchDate: z.string().optional().transform(v => v?.trim() || undefined),
+      personality: z.string().optional().transform(v => v?.trim() || undefined),
+      weightGrams: z.coerce.number().int().min(0).optional().transform(v => v || undefined),
     }),
-    handler: async (input) => {
+    handler: async ({ status, available, ...input }) => {
       const db = getDb();
-      const [snake] = await db.insert(snakes).values(input).returning();
+      const resolvedAvailable = status ? status === 'available' : available;
+      const [snake] = await db.insert(snakes).values({
+        ...input,
+        available: resolvedAvailable,
+        status: status ?? null,
+        sex: input.sex ?? null,
+        hatchDate: input.hatchDate ?? null,
+        personality: input.personality ?? null,
+        weightGrams: input.weightGrams ?? null,
+      }).returning();
       return { snake };
     },
   }),
@@ -61,10 +75,39 @@ export const server = {
       priceInCents: z.coerce.number().int().min(0).default(0),
       available: z.coerce.boolean().default(false),
       featured: z.coerce.boolean().default(false),
+      primaryImageKey: z.string().optional().transform(v => v?.trim() || undefined),
+      status: z.enum(['available', 'reserved', 'sold']).optional(),
+      sex: z.string().optional().transform(v => v?.trim() || undefined),
+      hatchDate: z.string().optional().transform(v => v?.trim() || undefined),
+      personality: z.string().optional().transform(v => v?.trim() || undefined),
+      feedingNotes: z.string().optional().transform(v => v?.trim() || undefined),
+      diet: z.string().optional().transform(v => v?.trim() || undefined),
+      shedFrequency: z.string().optional().transform(v => v?.trim() || undefined),
+      temperature: z.string().optional().transform(v => v?.trim() || undefined),
+      humidity: z.string().optional().transform(v => v?.trim() || undefined),
+      weightGrams: z.coerce.number().int().min(0).optional().transform(v => v || undefined),
+      complementaryGenetics: z.string().optional().transform(v => v?.trim() || undefined),
     }),
-    handler: async ({ id, ...data }) => {
+    handler: async ({ id, primaryImageKey, status, available, ...data }) => {
       const db = getDb();
-      await db.update(snakes).set({ ...data, updatedAt: new Date() }).where(eq(snakes.id, id));
+      const resolvedAvailable = status ? status === 'available' : available;
+      await db.update(snakes).set({
+        ...data,
+        available: resolvedAvailable,
+        primaryImageKey: primaryImageKey ?? null,
+        status: status ?? null,
+        sex: data.sex ?? null,
+        hatchDate: data.hatchDate ?? null,
+        personality: data.personality ?? null,
+        feedingNotes: data.feedingNotes ?? null,
+        diet: data.diet ?? null,
+        shedFrequency: data.shedFrequency ?? null,
+        temperature: data.temperature ?? null,
+        humidity: data.humidity ?? null,
+        weightGrams: data.weightGrams ?? null,
+        complementaryGenetics: data.complementaryGenetics ?? null,
+        updatedAt: new Date(),
+      }).where(eq(snakes.id, id));
       return { success: true };
     },
   }),

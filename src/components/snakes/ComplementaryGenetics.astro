@@ -1,0 +1,80 @@
+---
+// src/components/snakes/ComplementaryGenetics.astro
+import { createDb } from '../../db/client';
+import { snakes } from '../../db/schema';
+import { inArray } from 'drizzle-orm';
+import { env } from 'cloudflare:workers';
+import type { D1Database } from '@cloudflare/workers-types';
+
+interface Props {
+  geneticsText: string;
+}
+const { geneticsText } = Astro.props;
+
+// Parse comma-separated slugs, strip whitespace
+const slugCandidates = geneticsText
+  .split(',')
+  .map(s => s.trim().toLowerCase())
+  .filter(Boolean);
+
+let linkedSpecimens: Array<{ id: string; slug: string; name: string; species: string; priceInCents: number; status: string | null; available: boolean }> = [];
+
+if (slugCandidates.length > 0) {
+  try {
+    const db = createDb((env as unknown as { DB: D1Database }).DB);
+    linkedSpecimens = await db
+      .select({
+        id: snakes.id,
+        slug: snakes.slug,
+        name: snakes.name,
+        species: snakes.species,
+        priceInCents: snakes.priceInCents,
+        status: snakes.status,
+        available: snakes.available,
+      })
+      .from(snakes)
+      .where(inArray(snakes.slug, slugCandidates));
+  } catch {
+    // DB unavailable — render nothing rather than breaking the page
+    linkedSpecimens = [];
+  }
+}
+
+const linkedSlugs = new Set(linkedSpecimens.map(s => s.slug));
+const unmatchedText = slugCandidates.filter(s => !linkedSlugs.has(s));
+---
+
+<div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-6">
+  <p class="flex items-center gap-2 text-[9px] uppercase tracking-[2px] text-primary font-semibold mb-3">
+    <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
+    Complementary Genetics
+  </p>
+
+  {linkedSpecimens.length > 0 && (
+    <div class="flex flex-wrap gap-3 mt-3">
+      {linkedSpecimens.map(specimen => {
+        const displayStatus = specimen.status ?? (specimen.available ? 'available' : 'sold');
+        const price = specimen.priceInCents > 0
+          ? `$${(specimen.priceInCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+          : null;
+        return (
+          <div class="bg-surface-container rounded-lg border border-outline-variant/10 px-4 py-3 flex flex-col gap-1 min-w-40">
+            <span class="text-[11px] font-semibold text-on-surface/80">{specimen.name}</span>
+            <span class="text-[10px] text-on-surface/40 uppercase tracking-wide">{specimen.species}</span>
+            <div class="flex items-center justify-between mt-1">
+              {price && <span class="text-[11px] text-tertiary font-medium">{price}</span>}
+              <span class:list={[
+                'text-[9px] uppercase tracking-widest font-medium',
+                displayStatus === 'available' ? 'text-primary' : 'text-on-surface/30'
+              ]}>{displayStatus}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  )}
+
+  {unmatchedText.length > 0 && (
+    <p class="text-sm text-on-surface/50 leading-relaxed mt-3">{unmatchedText.join(', ')}</p>
+  )}
+</div>

@@ -1,4 +1,4 @@
-# CLAUDE.md — The Serpent's Edge
+# CLAUDE.md — BC Exotix
 
 ## Project Overview
 Snake breeding e-commerce/showcase site with a premium editorial aesthetic ("The Curated Terrarium"). Design tokens and visual language are fully documented in `DESIGN.md` — always consult it before adding UI.
@@ -107,8 +107,8 @@ npx wrangler deploy
 Set secrets: `npx wrangler secret put CLERK_SECRET_KEY`
 
 ### Cloudflare Resources
-- D1 database: `serpents-edge-db`
-- R2 bucket: `serpents-edge-assets`
+- D1 database: `bc-exotix-db`
+- R2 bucket: `bc-exotix-assets`
 - Workers binding names: `DB` (D1), `ASSETS_BUCKET` (R2)
 
 ## PR and Commit Standards
@@ -116,4 +116,4 @@ Set secrets: `npx wrangler secret put CLERK_SECRET_KEY`
 - PR bodies and commit messages should read as written by the developer
 
 ## Implementation Plan
-Full plan at: `docs/superpowers/plans/2026-03-20-serpents-edge-full-stack.md`
+Full plan at: `docs/superpowers/plans/2026-03-20-bc-exotix-full-stack.md`

@@ -1,4 +1,4 @@
-# Design System Strategy: The Serpent’s Edge
+# Design System Strategy: BC Exotix
 
 ## 1. Overview & Creative North Star
 **Creative North Star: "The Curated Terrarium"**

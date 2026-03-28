@@ -5,7 +5,7 @@ import Header from '../../components/layout/Header.astro';
 import Footer from '../../components/layout/Footer.astro';
 import Badge from '../../components/ui/Badge.astro';
 import Chip from '../../components/ui/Chip.astro';
-import Button from '../../components/ui/Button.astro';
+import ComplementaryGenetics from '../../components/snakes/ComplementaryGenetics.astro';
 import { createDb } from '../../db/client';
 import { snakes, traitChips } from '../../db/schema';
 import { eq } from 'drizzle-orm';
@@ -19,33 +19,205 @@ const [snake] = await db.select().from(snakes).where(eq(snakes.slug, slug!));
 if (!snake) return Astro.redirect('/snakes');
 
 const traits = await db.select().from(traitChips).where(eq(traitChips.snakeId, snake.id));
+
 const imageUrl = snake.primaryImageKey
   ? `/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`
-  : '/placeholder-snake.svg';
+  : null;
+
+const displayStatus = snake.status ?? (snake.available ? 'available' : 'sold');
+const sku = `#${snake.id.slice(0, 8).toUpperCase()}`;
+const price = snake.priceInCents > 0
+  ? `$${(snake.priceInCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+  : null;
+
+const hasHealth = !!(snake.feedingNotes || snake.diet || snake.shedFrequency || snake.temperature || snake.humidity);
+const hasStats = !!(snake.diet || snake.shedFrequency || snake.temperature || snake.humidity);
 ---
 <BaseLayout title={snake.name} description={snake.description}>
   <Header slot="header" />
-  <div class="max-w-5xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-16">
-    <div class="aspect-square bg-surface-container-lowest rounded overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
-      <img src={imageUrl} alt={snake.name} class="w-full h-full object-cover" />
-    </div>
-    <div class="flex flex-col gap-6">
-      <Badge variant={snake.available ? 'available' : 'sold'}>
-        {snake.available ? 'Available' : 'Sold'}
+
+  <!-- Page header -->
+  <div class="px-12 pt-10 pb-8 border-b border-outline-variant/20">
+    <div class="flex items-center gap-3 mb-3">
+      <Badge variant={displayStatus === 'available' ? 'available' : displayStatus === 'reserved' ? 'reserved' : 'sold'}>
+        {displayStatus === 'available' ? 'Available' : displayStatus === 'reserved' ? 'Reserved' : 'Sold'}
       </Badge>
-      <h1 class="font-noto-serif text-on-surface text-4xl">{snake.name}</h1>
-      <p class="text-primary text-xs uppercase tracking-widest">{snake.species}</p>
-      {traits.length > 0 && (
-        <div class="flex flex-wrap gap-2">
-          {traits.map(t => <Chip type={t.type}>{t.label}</Chip>)}
+      <span class="text-[10px] uppercase tracking-widest text-on-surface/40">{sku}</span>
+    </div>
+    <div class="flex items-end justify-between">
+      <div>
+        <h1 class="font-noto-serif text-5xl font-bold text-on-surface leading-tight">{snake.name}</h1>
+        <p class="text-[10px] uppercase tracking-widest text-primary/50 mt-3">{snake.species}</p>
+      </div>
+      {price && (
+        <div class="text-right">
+          <p class="text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">Investment</p>
+          <p class="font-noto-serif text-4xl font-light text-tertiary">{price}</p>
         </div>
       )}
-      <p class="text-on-surface-variant text-sm leading-relaxed">{snake.description}</p>
-      <p class="text-on-surface text-2xl font-inter">
-        {snake.priceInCents > 0 ? `$${(snake.priceInCents / 100).toLocaleString()}` : 'Price on request'}
-      </p>
-      {snake.available && <Button href="#contact" variant="tertiary">Reserve This Specimen</Button>}
     </div>
   </div>
+
+  <!-- Hero split: photo left 3fr, details right 2fr -->
+  <div class="grid grid-cols-[3fr_2fr]">
+
+    <!-- Photo column -->
+    <div class="p-8 pl-12 flex flex-col gap-3">
+      <div class="rounded-lg aspect-video overflow-hidden bg-surface-container-lowest">
+        {imageUrl
+          ? <img src={imageUrl} alt={snake.name} class="w-full h-full object-cover" />
+          : <div class="w-full h-full flex items-center justify-center">
+              <img src="/placeholder-snake.svg" alt="" class="w-24 opacity-20" />
+            </div>
+        }
+      </div>
+      {imageUrl && (
+        <div class="flex gap-2">
+          <div class="w-16 h-16 rounded-md overflow-hidden border border-outline-variant/20 flex-shrink-0">
+            <img src={imageUrl} alt={snake.name} class="w-full h-full object-cover" />
+          </div>
+        </div>
+      )}
+    </div>
+
+    <!-- Details column -->
+    <div class="border-l border-outline-variant/20 p-6 flex flex-col gap-4">
+
+      <!-- Acquisition Details card -->
+      <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-6 flex flex-col gap-6">
+        <div>
+          <p class="flex items-center gap-2 text-[9px] uppercase tracking-[2px] text-primary font-semibold mb-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
+            Acquisition Details
+          </p>
+          <div class="flex flex-col">
+            <div class="flex justify-between items-baseline py-3 border-b border-outline-variant/10">
+              <span class="text-[11px] text-on-surface/50">Genetic ID</span>
+              <span class="text-[11px] text-on-surface/80 font-medium text-right font-mono">{sku}</span>
+            </div>
+            {snake.sex && (
+              <div class="flex justify-between items-baseline py-3 border-b border-outline-variant/10">
+                <span class="text-[11px] text-on-surface/50">Sex</span>
+                <span class="text-[11px] text-on-surface/80 font-medium text-right capitalize">{snake.sex}</span>
+              </div>
+            )}
+            {snake.hatchDate && (
+              <div class="flex justify-between items-baseline py-3 border-b border-outline-variant/10">
+                <span class="text-[11px] text-on-surface/50">Hatch Date</span>
+                <span class="text-[11px] text-on-surface/80 font-medium text-right">
+                  {new Date(snake.hatchDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </span>
+              </div>
+            )}
+            {snake.weightGrams && (
+              <div class="flex justify-between items-baseline py-3">
+                <span class="text-[11px] text-on-surface/50">Weight</span>
+                <span class="text-[11px] text-on-surface/80 font-medium text-right">{snake.weightGrams}g</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <!-- CTA stack -->
+        <div class="flex flex-col gap-2">
+          {displayStatus === 'available' && (
+            <a href={`mailto:info@bcexotix.com?subject=Reserve: ${snake.name}`}
+               class="block bg-tertiary text-on-tertiary text-[11px] font-bold uppercase tracking-[1.5px] py-3.5 px-4 rounded-md text-center">
+              Reserve This Specimen
+            </a>
+          )}
+          {displayStatus === 'reserved' && (
+            <div class="border border-outline-variant/40 text-on-surface/60 text-[11px] font-semibold uppercase tracking-[1px] py-3 px-4 rounded-md text-center">
+              Reserved — Email to Inquire
+            </div>
+          )}
+          {displayStatus === 'sold' && (
+            <div class="border border-outline-variant/20 text-on-surface/30 text-[11px] uppercase tracking-[1px] py-3 px-4 rounded-md text-center cursor-not-allowed">
+              This Specimen Has Found a Home
+            </div>
+          )}
+          <a href={`mailto:info@bcexotix.com?subject=Inquiry: ${snake.name}`}
+             class="block border border-outline-variant/30 text-on-surface/60 text-[11px] font-semibold uppercase tracking-[1px] py-3 px-4 rounded-md text-center">
+            Email Inquiry
+          </a>
+          <p class="text-[10px] text-on-surface/30 text-center mt-1">Secure shipping available via FedEx Overnight Priority</p>
+        </div>
+      </div>
+
+      <!-- Genotype Breakdown card (hidden if no traits) -->
+      {traits.length > 0 && (
+        <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-6">
+          <p class="flex items-center gap-2 text-[9px] uppercase tracking-[2px] text-primary font-semibold mb-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
+            Genotype Breakdown
+          </p>
+          <div class="flex flex-wrap gap-2">
+            {traits.map(t => <Chip type={t.type}>{t.label}</Chip>)}
+          </div>
+        </div>
+      )}
+
+    </div>
+  </div>
+
+  <!-- Below-fold cards -->
+  <div class="px-12 pt-6 pb-10 flex flex-col gap-4">
+
+    {snake.personality && (
+      <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-6">
+        <p class="flex items-center gap-2 text-[9px] uppercase tracking-[2px] text-primary font-semibold mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
+          Personality & Temperament
+        </p>
+        <p class="text-sm text-on-surface/60 leading-relaxed mt-3">{snake.personality}</p>
+      </div>
+    )}
+
+    {hasHealth && (
+      <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-6">
+        <p class="flex items-center gap-2 text-[9px] uppercase tracking-[2px] text-primary font-semibold mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
+          Health & Feeding Habits
+        </p>
+        {snake.feedingNotes && (
+          <p class="text-sm text-on-surface/60 leading-relaxed mt-3">{snake.feedingNotes}</p>
+        )}
+        {hasStats && (
+          <div class="grid grid-cols-4 border-t border-outline-variant/10 mt-5 pt-5">
+            {snake.diet && (
+              <div class="flex flex-col gap-1.5">
+                <span class="text-[9px] text-on-surface/50 uppercase tracking-[1.5px]">Diet</span>
+                <span class="text-sm text-on-surface/80 font-medium">{snake.diet}</span>
+              </div>
+            )}
+            {snake.shedFrequency && (
+              <div class="flex flex-col gap-1.5">
+                <span class="text-[9px] text-on-surface/50 uppercase tracking-[1.5px]">Shed Frequency</span>
+                <span class="text-sm text-on-surface/80 font-medium">{snake.shedFrequency}</span>
+              </div>
+            )}
+            {snake.temperature && (
+              <div class="flex flex-col gap-1.5">
+                <span class="text-[9px] text-on-surface/50 uppercase tracking-[1.5px]">Temperature</span>
+                <span class="text-sm text-on-surface/80 font-medium">{snake.temperature}</span>
+              </div>
+            )}
+            {snake.humidity && (
+              <div class="flex flex-col gap-1.5">
+                <span class="text-[9px] text-on-surface/50 uppercase tracking-[1.5px]">Humidity</span>
+                <span class="text-sm text-on-surface/80 font-medium">{snake.humidity}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )}
+
+    {snake.complementaryGenetics && (
+      <ComplementaryGenetics server:defer geneticsText={snake.complementaryGenetics} />
+    )}
+
+  </div>
+
   <Footer slot="footer" />
 </BaseLayout>

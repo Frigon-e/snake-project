@@ -1,4 +1,4 @@
-# The Serpent's Edge
+# BC Exotix
 
 Premium snake breeding business website. Built with Astro 6 + Cloudflare Workers.
 

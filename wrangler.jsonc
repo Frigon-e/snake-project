@@ -1,20 +1,21 @@
 {
-  "name": "serpents-edge",
+  "name": "bc-exotix",
+  "account_id": "78efb6067958ff0e25049dca6093eb60",
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "./dist/client" },
   "d1_databases": [
     {
-      "binding": "DB",
-      "database_name": "serpents-edge-db",
-      "database_id": "REPLACE_WITH_YOUR_D1_ID",
+      "binding": "bc_exotix_db",
+      "database_name": "bc-exotix-db",
+      "database_id": "211c0a2a-e414-4e59-b819-5db21a605e7c",
       "migrations_dir": "src/db/migrations"
     }
   ],
   "r2_buckets": [
     {
-      "binding": "ASSETS_BUCKET",
-      "bucket_name": "serpents-edge-assets"
+      "bucket_name": "bc-exotix-assets",
+      "binding": "bc_exotix_assets"
     }
   ],
   "vars": {

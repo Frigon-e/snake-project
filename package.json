@@ -10,8 +10,8 @@
     "build": "astro check && astro build",
     "preview": "wrangler dev",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "wrangler d1 migrations apply serpents-edge-db --local",
-    "db:migrate:prod": "wrangler d1 migrations apply serpents-edge-db --remote",
+    "db:migrate": "wrangler d1 migrations apply bc-exotix-db --local",
+    "db:migrate:prod": "wrangler d1 migrations apply bc-exotix-db --remote",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"

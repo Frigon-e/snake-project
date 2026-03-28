@@ -1,10 +1,11 @@
 ---
 interface Props {
-  variant?: 'available' | 'sold' | 'featured';
+  variant?: 'available' | 'reserved' | 'sold' | 'featured';
 }
 const { variant = 'available' } = Astro.props;
 const variants = {
   available: 'bg-primary/20 text-primary',
+  reserved: 'bg-tertiary/20 text-tertiary',
   sold: 'bg-surface-container-highest text-on-surface-variant',
   featured: 'bg-tertiary/20 text-tertiary',
 };

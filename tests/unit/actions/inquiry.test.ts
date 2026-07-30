@@ -1,33 +1,40 @@
 import { describe, it, expect } from 'vitest';
+import { inquiryFormSchema } from '../../../src/lib/forms';
 
-// Validation logic that mirrors what Zod does in the action
-// (Astro Actions themselves can't be unit-tested in isolation — they require Astro runtime)
-function validateInquiryInput(data: { name: string; email: string; message: string }) {
-  const errors: string[] = [];
-  if (!data.name.trim()) errors.push('name');
-  if (!data.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) errors.push('email');
-  if (data.message.trim().length < 10) errors.push('message');
-  return errors;
-}
+const validInquiry = {
+  snakeId: 'snake-1',
+  name: 'Joe',
+  email: 'joe@example.com',
+  message: 'I am very interested in this specimen.',
+  website: '',
+};
 
-describe('inquiry validation logic', () => {
+describe('inquiryFormSchema', () => {
   it('rejects empty name', () => {
-    const errors = validateInquiryInput({ name: '', email: 'a@b.com', message: 'I am interested in this snake!' });
-    expect(errors).toContain('name');
+    expect(inquiryFormSchema.safeParse({ ...validInquiry, name: '' }).success).toBe(false);
   });
 
   it('rejects invalid email', () => {
-    const errors = validateInquiryInput({ name: 'Joe', email: 'notanemail', message: 'I am interested in this snake!' });
-    expect(errors).toContain('email');
+    expect(inquiryFormSchema.safeParse({ ...validInquiry, email: 'notanemail' }).success).toBe(false);
   });
 
   it('rejects short message', () => {
-    const errors = validateInquiryInput({ name: 'Joe', email: 'joe@example.com', message: 'Hi' });
-    expect(errors).toContain('message');
+    expect(inquiryFormSchema.safeParse({ ...validInquiry, message: 'Hi' }).success).toBe(false);
   });
 
-  it('accepts valid input', () => {
-    const errors = validateInquiryInput({ name: 'Joe', email: 'joe@example.com', message: 'I am very interested in this specimen.' });
-    expect(errors).toHaveLength(0);
+  it('normalizes valid email addresses', () => {
+    const result = inquiryFormSchema.safeParse({
+      ...validInquiry,
+      email: '  JOE@EXAMPLE.COM ',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.email).toBe('joe@example.com');
+  });
+
+  it('rejects a filled bot honeypot', () => {
+    expect(inquiryFormSchema.safeParse({
+      ...validInquiry,
+      website: 'https://spam.example',
+    }).success).toBe(false);
   });
 });

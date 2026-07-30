@@ -1,6 +1,6 @@
 # BC Exotix
 
-Premium snake breeding business website. Built with Astro 6 + Cloudflare Workers.
+Small-breeder snake showcase and inquiry website. Built with Astro 7 + Cloudflare Workers.
 
 ## Quick Start
 
@@ -13,9 +13,17 @@ npm run dev        # http://localhost:4321
 npm run preview    # Wrangler Workers runtime — http://localhost:8787
 ```
 
+To load the clearly labelled fictional collection used for local UI demos:
+
+```bash
+npm run db:seed:demo
+```
+
+The seed is idempotent, updates only reserved `demo-*` records, and loads illustrative images into local R2. It never writes to production.
+
 ## Stack
 
-- **Framework:** Astro 6 (SSR) + Cloudflare Workers
+- **Framework:** Astro 7 (SSR) + Cloudflare Workers
 - **Database:** Cloudflare D1 (SQLite) via Drizzle ORM
 - **Auth:** Clerk (admin routes only)
 - **Storage:** Cloudflare R2 (photos)

@@ -6,7 +6,7 @@ Snake breeding e-commerce/showcase site with a premium editorial aesthetic ("The
 ## Tech Stack
 | Layer | Technology |
 |---|---|
-| Framework | Astro 6 (`output: 'server'`) |
+| Framework | Astro 7 (`output: 'server'`) |
 | Deployment | Cloudflare Workers via `@astrojs/cloudflare` v13+ |
 | Database | Cloudflare D1 (SQLite) via Drizzle ORM |
 | Auth | Clerk (`@clerk/astro`) — admin routes only |
@@ -14,12 +14,12 @@ Snake breeding e-commerce/showcase site with a premium editorial aesthetic ("The
 | Styling | Tailwind CSS v4 + Tailwind UI Plus components |
 | Forms | Astro Actions (`astro:actions`) |
 | Testing | Vitest (unit) + Playwright (E2E) |
-| Local Dev | Docker Compose + Wrangler dev (platformProxy) |
+| Local Dev | Docker Compose + Wrangler dev |
 
 ## Key Conventions
 
 ### Database
-- All DB access goes through `src/db/client.ts` via `createDb(Astro.locals.runtime.env.DB)`
+- All DB access goes through `src/db/client.ts` via `createDb(env.DB)`, using Astro 7's `cloudflare:workers` environment import
 - Never import D1 directly in pages
 - Schema lives in `src/db/schema.ts` — run `npm run db:generate` after any changes, then `npm run db:migrate`
 - Migrations are in `src/db/migrations/`
@@ -46,9 +46,9 @@ Snake breeding e-commerce/showcase site with a premium editorial aesthetic ("The
 - Images served via `/api/r2/image?key=...`
 - Admin upload at `/admin/media`
 
-### Live Content Collections (Astro 6)
-- Config in `src/live.config.ts`
-- Pages query Drizzle directly for richer query capabilities
+### Specimen Data
+- Public and admin pages query Drizzle through `src/db/specimens.ts`
+- Shared specimen lifecycle and display helpers live in `src/lib/specimens.ts`
 
 ### Figma MCP (UI Designs)
 - File key: `hluobF92AIfv489ZzBw1Cu`
@@ -79,6 +79,7 @@ npm run preview          # Wrangler local Workers preview (http://localhost:8787
 npm run db:generate      # drizzle-kit generate migrations from schema changes
 npm run db:migrate       # Apply migrations to local D1 (via Wrangler)
 npm run db:migrate:prod  # Apply migrations to production D1
+npm run db:seed:demo     # Load labelled fictional specimens + images into local D1/R2
 npm run test             # Vitest unit tests
 npm run test:watch       # Vitest in watch mode
 npm run test:e2e         # Playwright E2E tests
@@ -91,7 +92,8 @@ docker compose up        # Full containerized local dev environment
 | `DESIGN.md` | Design system — colors, typography, components |
 | `src/db/schema.ts` | Drizzle table definitions |
 | `src/db/client.ts` | D1 Drizzle client factory |
-| `src/live.config.ts` | Astro 6 Live Content Collections |
+| `src/db/specimens.ts` | Shared specimen queries |
+| `src/lib/specimens.ts` | Specimen lifecycle and display helpers |
 | `src/middleware.ts` | Clerk auth + route protection |
 | `src/actions/index.ts` | Astro Actions (all form handlers) |
 | `src/lib/auth.ts` | Clerk role helpers |
@@ -110,6 +112,7 @@ Set secrets: `npx wrangler secret put CLERK_SECRET_KEY`
 - D1 database: `bc-exotix-db`
 - R2 bucket: `bc-exotix-assets`
 - Workers binding names: `DB` (D1), `ASSETS_BUCKET` (R2)
+- Inquiry rate-limit binding: `INQUIRY_RATE_LIMITER`
 
 ## PR and Commit Standards
 - Never include "Generated with Claude Code", "Co-Authored-By: Claude", or any AI attribution in PR descriptions, commit messages, or code comments

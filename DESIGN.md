@@ -38,7 +38,7 @@ The typographic soul of this system lies in the tension between the modern and t
 | **Body** | `body-md` | Inter | 0.875rem | Regular weight, clean slate grey. |
 | **Label** | `label-sm` | Inter | 0.6875rem | All-caps, wide tracking (0.1em). |
 
-**Editorial Direction:** Use `display-lg` for impactful storytelling (e.g., "The 2024 Morph Collection") and pair it with `label-sm` in `primary` (#9ed1bd) for a technical, scientific feel.
+**Editorial Direction:** Use `display-lg` for impactful, evergreen storytelling and pair it with `label-sm` in `primary` (#9ed1bd) for a technical, scientific feel.
 
 ---
 
@@ -56,7 +56,10 @@ In this system, light doesn't hit the UI; it glows from within it.
 ### Buttons
 * **Primary:** Background: `primary` (#9ed1bd), Text: `on_primary` (#00382a). Radius: `md` (0.375rem). High-contrast, sleek.
 * **Tertiary (The "Gold Standard"):** Background: `tertiary` (#e9c176), Text: `on_tertiary` (#412d00). Use only for final conversion points.
-* **Ghost:** Background: Transparent, Border: `outline_variant` (#414843) at 20%.
+* **Secondary:** Background: `surface_container_high`, text: `on_surface`. Use for supporting actions.
+* **Outline:** Transparent with `outline_variant` at 50%. Use where a visible control edge is needed.
+* **Ghost:** Transparent and borderless. Use for low-emphasis navigation and compact table actions.
+* **Destructive:** Background: `danger_container`, text: `danger`. Always pair permanent removal with an explicit confirmation.
 
 ### Cards (Specimen Display)
 * **Structure:** No borders. Background: `surface_container_low`.
@@ -66,14 +69,42 @@ In this system, light doesn't hit the UI; it glows from within it.
 ### Input Fields
 * **State:** Darkest background (`surface_container_lowest`).
 * **Focus:** A subtle `primary` (#9ed1bd) 1px glow. Avoid the standard blue focus ring; use a soft `0px 0px 8px` glow of the primary green.
+* **Error:** Use the semantic `danger` and `danger_container` tokens. Never use one-off Tailwind red utilities.
+* **Semantics:** Every input has a visible label. Errors use `aria-invalid`, `aria-describedby`, and a live alert message.
 
 ### Specimen "Trait" Chips
 * Use `surface_variant` for the container with `on_surface_variant` text.
-* **Pro-tip:** For recessive traits, use a `tertiary_container` chip to subtly highlight rarity without overwhelming the UI.
+* Recessive and co-dominant traits use `secondary_container`; rarity is communicated in text, not with conversion gold.
+
+### Availability
+`available`, `reserved`, and `sold` are domain states, not arbitrary colors. All components derive their label and styling from the same status helper.
+
+- **Available:** primary green
+- **Reserved:** secondary teal
+- **Sold / placed:** neutral highest surface
+
+The legacy `available` boolean is maintained only for database compatibility and must never be read directly by presentation components.
 
 ---
 
-## 6. Do’s and Don’ts
+## 6. Accessibility Baseline
+
+- All interactive elements have a visible `primary` focus indicator.
+- Page layouts include one `<main>` landmark and a skip link.
+- Meaningful small text uses `on_surface_variant`; opacity below 60% is decorative only.
+- Native radio, select, checkbox, and button semantics are preferred over scripted imitations.
+- Motion respects `prefers-reduced-motion`.
+- Interactive targets are at least 44px in their primary dimension.
+
+---
+
+## 7. Token Ownership
+
+Color, radius, typography, elevation, control, and status values are declared in `src/styles/global.css`. Feature code consumes semantic tokens such as `surface-container-high`, `danger`, and `primary`; it does not introduce raw hex values or one-off Tailwind palette colors.
+
+---
+
+## 8. Do’s and Don’ts
 
 ### Do
 * **DO** use asymmetric layouts. A headline might be left-aligned while the body text is tucked into a 6-column grid on the right.

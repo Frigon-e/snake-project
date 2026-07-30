@@ -1,9 +1,20 @@
 ---
 interface Props {
   class?: string;
+  elevated?: boolean;
+  interactive?: boolean;
 }
-const { class: className = '' } = Astro.props;
+
+const { class: className = '', elevated = false, interactive = false } = Astro.props;
 ---
-<div class={`bg-surface-container-low rounded hover:bg-surface-container-high transition-colors ${className}`}>
+
+<div
+  class:list={[
+    'rounded-lg',
+    elevated ? 'bg-surface-container shadow-ambient' : 'bg-surface-container-low',
+    interactive && 'transition-colors hover:bg-surface-container-high',
+    className,
+  ]}
+>
   <slot />
 </div>

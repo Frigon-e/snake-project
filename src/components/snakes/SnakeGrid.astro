@@ -1,16 +1,22 @@
 ---
 // src/components/snakes/SnakeGrid.astro
 import SnakeCard from './SnakeCard.astro';
-import type { Snake, TraitChip } from '../../db/schema';
+import type { SpecimenWithTraits } from '../../db/specimens';
 
 interface Props {
-  snakes: (Snake & { traits?: TraitChip[] })[];
+  snakes: SpecimenWithTraits[];
 }
 const { snakes } = Astro.props;
 ---
 {snakes.length === 0
-  ? <p class="text-on-surface-variant text-center py-24">No specimens available at this time.</p>
-  : <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  ? <div class="surface-panel flex min-h-80 flex-col items-center justify-center p-8 text-center">
+      <img src="/placeholder-snake.svg" alt="" class="h-24 w-24 opacity-40" />
+      <h2 class="mt-5 font-noto-serif text-2xl font-bold text-on-surface">The collection is being updated</h2>
+      <p class="mt-2 max-w-md text-sm leading-relaxed text-on-surface-variant">
+        This is a small home breeding program, so availability changes with each clutch. Please check back soon.
+      </p>
+    </div>
+  : <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {snakes.map(snake => <SnakeCard snake={snake} />)}
     </div>
 }

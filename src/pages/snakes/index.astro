@@ -1,35 +1,28 @@
 ---
-// src/pages/snakes/index.astro
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/layout/Header.astro';
 import Footer from '../../components/layout/Footer.astro';
 import SnakeGrid from '../../components/snakes/SnakeGrid.astro';
-import { createDb } from '../../db/client';
-import { snakes, traitChips } from '../../db/schema';
-import { eq } from 'drizzle-orm';
-
 import { env } from 'cloudflare:workers';
-import type { D1Database } from '@cloudflare/workers-types';
+import { createDb } from '../../db/client';
+import { listSpecimens } from '../../db/specimens';
 
-const db = createDb((env as unknown as { DB: D1Database }).DB);
-const allSnakes = await db.select().from(snakes).orderBy(snakes.createdAt);
-const snakesWithTraits = await Promise.all(
-  allSnakes.map(async s => ({
-    ...s,
-    traits: await db.select().from(traitChips).where(eq(traitChips.snakeId, s.id)),
-  }))
-);
+const db = createDb((env as unknown as Env).DB);
+const specimens = await listSpecimens(db);
 ---
-<BaseLayout title="Collection">
+
+<BaseLayout title="Collection" description="Browse the current BC Exotix specimen collection.">
   <Header slot="header" />
-  <section class="bg-surface px-20 py-24">
-    <div class="max-w-[1280px] mx-auto">
-      <p class="text-primary uppercase tracking-[0.1em] text-xs font-bold mb-4">Our Specimens</p>
-      <h1 class="font-noto-serif text-on-surface font-bold mb-16" style="font-size: 3.5rem;">
-        The Collection
-      </h1>
-      <SnakeGrid snakes={snakesWithTraits} />
+  <section class="page-shell py-16 sm:py-24">
+    <div class="mb-10 max-w-3xl sm:mb-14">
+      <p class="eyebrow">Current specimens</p>
+      <h1 class="mt-3 font-noto-serif text-4xl font-bold text-on-surface sm:text-6xl">The collection</h1>
+      <p class="mt-5 text-base leading-relaxed text-on-surface-variant sm:text-lg">
+        Each animal is listed individually with the information available today. Availability is updated by hand,
+        so an inquiry is always the first step.
+      </p>
     </div>
+    <SnakeGrid snakes={specimens} />
   </section>
   <Footer slot="footer" />
 </BaseLayout>

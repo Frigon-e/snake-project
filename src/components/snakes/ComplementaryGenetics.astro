@@ -5,6 +5,7 @@ import { snakes } from '../../db/schema';
 import { inArray } from 'drizzle-orm';
 import { env } from 'cloudflare:workers';
 import type { D1Database } from '@cloudflare/workers-types';
+import { formatPrice, getSpecimenStatus, getStatusLabel } from '../../lib/specimens';
 
 interface Props {
   geneticsText: string;
@@ -53,22 +54,20 @@ const unmatchedText = slugCandidates.filter(s => !linkedSlugs.has(s));
   {linkedSpecimens.length > 0 && (
     <div class="flex flex-wrap gap-3 mt-3">
       {linkedSpecimens.map(specimen => {
-        const displayStatus = specimen.status ?? (specimen.available ? 'available' : 'sold');
-        const price = specimen.priceInCents > 0
-          ? `$${(specimen.priceInCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
-          : null;
+        const displayStatus = getSpecimenStatus(specimen);
+        const price = formatPrice(specimen.priceInCents);
         return (
-          <div class="bg-surface-container rounded-lg border border-outline-variant/10 px-4 py-3 flex flex-col gap-1 min-w-40">
+          <a href={`/snakes/${specimen.slug}`} class="bg-surface-container rounded-lg px-4 py-3 flex flex-col gap-1 min-w-40 hover:bg-surface-container-high">
             <span class="text-[11px] font-semibold text-on-surface/80">{specimen.name}</span>
             <span class="text-[10px] text-on-surface/40 uppercase tracking-wide">{specimen.species}</span>
             <div class="flex items-center justify-between mt-1">
               {price && <span class="text-[11px] text-tertiary font-medium">{price}</span>}
               <span class:list={[
                 'text-[9px] uppercase tracking-widest font-medium',
-                displayStatus === 'available' ? 'text-primary' : 'text-on-surface/30'
-              ]}>{displayStatus}</span>
+                displayStatus === 'available' ? 'text-primary' : 'text-on-surface-variant'
+              ]}>{getStatusLabel(displayStatus)}</span>
             </div>
-          </div>
+          </a>
         );
       })}
     </div>

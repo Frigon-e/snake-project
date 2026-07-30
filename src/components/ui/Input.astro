@@ -1,21 +1,48 @@
 ---
 interface Props {
   name: string;
+  id?: string;
   type?: string;
   placeholder?: string;
   required?: boolean;
-  value?: string;
-  error?: string;
+  value?: string | number;
+  error?: string | string[];
   class?: string;
+  min?: string | number;
+  max?: string | number;
+  step?: string | number;
+  autocomplete?: string;
 }
-const { name, type = 'text', placeholder, required, value, error, class: className = '' } = Astro.props;
+
+const {
+  name,
+  id = name,
+  type = 'text',
+  placeholder,
+  required,
+  value,
+  error,
+  class: className = '',
+  min,
+  max,
+  step,
+  autocomplete,
+} = Astro.props;
+const hasError = Boolean(error);
 ---
+
 <input
-  id={name}
+  id={id}
   name={name}
   type={type as astroHTML.JSX.HTMLInputTypeAttribute}
   placeholder={placeholder}
   required={required}
   value={value}
-  class={`w-full bg-surface-container-lowest border text-on-surface text-sm px-3 py-2 rounded focus:outline-none focus:shadow-[0_0_8px_rgba(158,209,189,0.3)] focus:border-primary/50 ${error ? 'border-red-500/60' : 'border-outline-variant/30'} ${className}`}
+  min={min}
+  max={max}
+  step={step}
+  autocomplete={autocomplete}
+  aria-invalid={hasError ? 'true' : undefined}
+  aria-describedby={hasError ? `${id}-error` : undefined}
+  class={`field-control ${className}`}
 />

@@ -1,223 +1,223 @@
 ---
-// src/pages/snakes/[slug].astro
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/layout/Header.astro';
 import Footer from '../../components/layout/Footer.astro';
 import Badge from '../../components/ui/Badge.astro';
+import Button from '../../components/ui/Button.astro';
 import Chip from '../../components/ui/Chip.astro';
+import FormField from '../../components/ui/FormField.astro';
+import Input from '../../components/ui/Input.astro';
 import ComplementaryGenetics from '../../components/snakes/ComplementaryGenetics.astro';
-import { createDb } from '../../db/client';
-import { snakes, traitChips } from '../../db/schema';
-import { eq } from 'drizzle-orm';
+import { actions, isInputError } from 'astro:actions';
 import { env } from 'cloudflare:workers';
-import type { D1Database } from '@cloudflare/workers-types';
+import { createDb } from '../../db/client';
+import { getSpecimenBySlug } from '../../db/specimens';
+import {
+  formatPrice,
+  formatHatchDate,
+  getSpecimenStatus,
+  getStatusLabel,
+  isDemoSpecimen,
+  specimenImageAlt,
+  specimenImageUrl,
+} from '../../lib/specimens';
 
 const { slug } = Astro.params;
-const db = createDb((env as unknown as { DB: D1Database }).DB);
+const db = createDb((env as unknown as Env).DB);
+const specimen = slug ? await getSpecimenBySlug(db, slug) : null;
+if (!specimen) return Astro.rewrite('/404');
 
-const [snake] = await db.select().from(snakes).where(eq(snakes.slug, slug!));
-if (!snake) return Astro.redirect('/snakes');
+const inquiryResult = Astro.getActionResult(actions.submitInquiry);
+if (inquiryResult && !inquiryResult.error) {
+  return Astro.redirect(`/snakes/${specimen.slug}?inquiry=sent#inquiry`, 303);
+}
+const inquiryErrors = inquiryResult?.error && isInputError(inquiryResult.error)
+  ? inquiryResult.error.fields
+  : {};
 
-const traits = await db.select().from(traitChips).where(eq(traitChips.snakeId, snake.id));
-
-const imageUrl = snake.primaryImageKey
-  ? `/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`
-  : null;
-
-const displayStatus = snake.status ?? (snake.available ? 'available' : 'sold');
-const sku = `#${snake.id.slice(0, 8).toUpperCase()}`;
-const price = snake.priceInCents > 0
-  ? `$${(snake.priceInCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
-  : null;
-
-const hasHealth = !!(snake.feedingNotes || snake.diet || snake.shedFrequency || snake.temperature || snake.humidity);
-const hasStats = !!(snake.diet || snake.shedFrequency || snake.temperature || snake.humidity);
+const status = getSpecimenStatus(specimen);
+const price = formatPrice(specimen.priceInCents);
+const imageUrl = specimenImageUrl(specimen);
+const sent = Astro.url.searchParams.get('inquiry') === 'sent';
+const hatchDate = formatHatchDate(specimen.hatchDate);
+const isDemo = isDemoSpecimen(specimen);
+const facts = [
+  specimen.sex && { label: 'Sex', value: specimen.sex },
+  hatchDate && {
+    label: 'Hatched',
+    value: hatchDate,
+  },
+  specimen.weightGrams && { label: 'Weight', value: `${specimen.weightGrams} g` },
+  specimen.diet && { label: 'Current diet', value: specimen.diet },
+].filter(Boolean) as { label: string; value: string }[];
 ---
-<BaseLayout title={snake.name} description={snake.description}>
+
+<BaseLayout title={specimen.name} description={specimen.description || `${specimen.name}, ${specimen.species}.`}>
   <Header slot="header" />
 
-  <!-- Page header -->
-  <div class="px-12 pt-10 pb-8 border-b border-outline-variant/20">
-    <div class="flex items-center gap-3 mb-3">
-      <Badge variant={displayStatus === 'available' ? 'available' : displayStatus === 'reserved' ? 'reserved' : 'sold'}>
-        {displayStatus === 'available' ? 'Available' : displayStatus === 'reserved' ? 'Reserved' : 'Sold'}
-      </Badge>
-      <span class="text-[10px] uppercase tracking-widest text-on-surface/40">{sku}</span>
-    </div>
-    <div class="flex items-end justify-between">
+  <article class="page-shell py-10 sm:py-16">
+    <a href="/snakes" class="text-sm font-semibold text-on-surface-variant hover:text-primary">
+      <span aria-hidden="true">←</span> Back to the collection
+    </a>
+
+    <header class="mt-7 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
       <div>
-        <h1 class="font-noto-serif text-5xl font-bold text-on-surface leading-tight">{snake.name}</h1>
-        <p class="text-[10px] uppercase tracking-widest text-primary/50 mt-3">{snake.species}</p>
-      </div>
-      {price && (
-        <div class="text-right">
-          <p class="text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">Investment</p>
-          <p class="font-noto-serif text-4xl font-light text-tertiary">{price}</p>
+        <div class="flex flex-wrap items-center gap-2">
+          <Badge variant={status}>{getStatusLabel(status)}</Badge>
+          {isDemo && <Badge variant="demo">Demo specimen</Badge>}
+          <span class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">{specimen.species}</span>
         </div>
-      )}
-    </div>
-  </div>
+        <h1 class="mt-4 font-noto-serif text-5xl font-bold leading-tight text-on-surface sm:text-6xl">{specimen.name}</h1>
+      </div>
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">Price</p>
+        <p class="mt-1 font-noto-serif text-3xl font-bold text-on-surface">{price ?? 'Inquire'}</p>
+      </div>
+    </header>
 
-  <!-- Hero split: photo left 3fr, details right 2fr -->
-  <div class="grid grid-cols-[3fr_2fr]">
+    {isDemo && (
+      <aside class="mt-6 rounded-lg bg-secondary-container px-5 py-4 text-sm leading-relaxed text-secondary" aria-label="Demo specimen notice">
+        This is a fictional demonstration record used to preview the website. It is not a real animal or an offer for sale.
+      </aside>
+    )}
 
-    <!-- Photo column -->
-    <div class="p-8 pl-12 flex flex-col gap-3">
-      <div class="rounded-lg aspect-video overflow-hidden bg-surface-container-lowest">
-        {imageUrl
-          ? <img src={imageUrl} alt={snake.name} class="w-full h-full object-cover" />
-          : <div class="w-full h-full flex items-center justify-center">
-              <img src="/placeholder-snake.svg" alt="" class="w-24 opacity-20" />
+    <div class="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.65fr)]">
+      <div class="overflow-hidden rounded-lg bg-surface-container-lowest">
+        <img
+          src={imageUrl}
+          alt={specimenImageAlt(specimen)}
+          class:list={[
+            'aspect-[4/3] h-full w-full',
+            specimen.primaryImageKey ? 'object-cover' : 'object-contain p-20 opacity-45',
+          ]}
+        />
+      </div>
+
+      <aside class="surface-panel p-5 sm:p-7" aria-labelledby="details-heading">
+        <h2 id="details-heading" class="font-noto-serif text-2xl font-bold text-on-surface">Specimen details</h2>
+        {facts.length > 0 ? (
+          <dl class="mt-5 grid gap-3">
+            {facts.map((fact) => (
+              <div class="rounded-md bg-surface-container px-4 py-3">
+                <dt class="text-xs font-semibold text-on-surface-variant">{fact.label}</dt>
+                <dd class="mt-1 text-sm font-medium capitalize text-on-surface">{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p class="mt-4 text-sm leading-relaxed text-on-surface-variant">
+            Additional measurements have not been recorded yet. Ask for the latest details below.
+          </p>
+        )}
+        {specimen.traits.length > 0 && (
+          <div class="mt-6">
+            <h3 class="text-sm font-semibold text-on-surface">Recorded genetics</h3>
+            <div class="mt-3 flex flex-wrap gap-2">
+              {specimen.traits.map((trait) => <Chip type={trait.type}>{trait.label}</Chip>)}
             </div>
-        }
-      </div>
-      {imageUrl && (
-        <div class="flex gap-2">
-          <div class="w-16 h-16 rounded-md overflow-hidden border border-outline-variant/20 flex-shrink-0">
-            <img src={imageUrl} alt={snake.name} class="w-full h-full object-cover" />
           </div>
-        </div>
-      )}
+        )}
+        <a href="#inquiry" class:list={[
+          'mt-7 flex min-h-12 items-center justify-center rounded-md px-5 text-sm font-bold',
+          status === 'available'
+            ? 'bg-primary text-on-primary hover:bg-primary/90'
+            : 'bg-surface-container-high text-on-surface hover:bg-surface-container-highest',
+        ]}>
+          {status === 'available' ? 'Ask about this specimen' : 'Ask about future availability'}
+        </a>
+        <p class="mt-3 text-center text-xs leading-relaxed text-on-surface-variant">
+          An inquiry is a conversation, not a reservation or purchase.
+        </p>
+      </aside>
     </div>
 
-    <!-- Details column -->
-    <div class="border-l border-outline-variant/20 p-6 flex flex-col gap-4">
+    <div class="mt-8 grid gap-6 lg:grid-cols-2">
+      <section class="surface-panel p-5 sm:p-7" aria-labelledby="overview-heading">
+        <p class="eyebrow">Overview</p>
+        <h2 id="overview-heading" class="mt-2 font-noto-serif text-2xl font-bold text-on-surface">About {specimen.name}</h2>
+        <p class="mt-4 whitespace-pre-line text-sm leading-relaxed text-on-surface-variant">
+          {specimen.description || 'A fuller description has not been added yet. Please use the inquiry form for current details.'}
+        </p>
+      </section>
 
-      <!-- Acquisition Details card -->
-      <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-6 flex flex-col gap-6">
+      <section class="surface-panel p-5 sm:p-7" aria-labelledby="care-heading">
+        <p class="eyebrow">Care notes</p>
+        <h2 id="care-heading" class="mt-2 font-noto-serif text-2xl font-bold text-on-surface">Temperament & husbandry</h2>
+        {specimen.personality || specimen.feedingNotes || specimen.shedFrequency || specimen.temperature || specimen.humidity ? (
+          <dl class="mt-4 grid gap-4 text-sm">
+            {specimen.personality && <div><dt class="font-semibold text-on-surface">Temperament</dt><dd class="mt-1 text-on-surface-variant">{specimen.personality}</dd></div>}
+            {specimen.feedingNotes && <div><dt class="font-semibold text-on-surface">Feeding</dt><dd class="mt-1 text-on-surface-variant">{specimen.feedingNotes}</dd></div>}
+            {specimen.shedFrequency && <div><dt class="font-semibold text-on-surface">Shedding</dt><dd class="mt-1 text-on-surface-variant">{specimen.shedFrequency}</dd></div>}
+            {specimen.temperature && <div><dt class="font-semibold text-on-surface">Temperature</dt><dd class="mt-1 text-on-surface-variant">{specimen.temperature}</dd></div>}
+            {specimen.humidity && <div><dt class="font-semibold text-on-surface">Humidity</dt><dd class="mt-1 text-on-surface-variant">{specimen.humidity}</dd></div>}
+          </dl>
+        ) : (
+          <p class="mt-4 text-sm leading-relaxed text-on-surface-variant">Care notes are available on request.</p>
+        )}
+      </section>
+    </div>
+
+    {specimen.complementaryGenetics && (
+      <div class="mt-6">
+        <ComplementaryGenetics server:defer geneticsText={specimen.complementaryGenetics} />
+      </div>
+    )}
+
+    <section id="inquiry" class="surface-panel-raised mt-10 scroll-mt-24 p-5 sm:p-8" aria-labelledby="inquiry-heading">
+      <div class="grid gap-8 lg:grid-cols-[0.75fr_1.25fr]">
         <div>
-          <p class="flex items-center gap-2 text-[9px] uppercase tracking-[2px] text-primary font-semibold mb-3">
-            <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
-            Acquisition Details
+          <p class="eyebrow">Direct inquiry</p>
+          <h2 id="inquiry-heading" class="mt-2 font-noto-serif text-3xl font-bold text-on-surface">Ask about {specimen.name}</h2>
+          <p class="mt-4 text-sm leading-relaxed text-on-surface-variant">
+            Share a little about what you would like to know. Your message is stored with this specimen so it does not get lost.
           </p>
-          <div class="flex flex-col">
-            <div class="flex justify-between items-baseline py-3 [&:not(:last-child)]:border-b border-outline-variant/10">
-              <span class="text-[11px] text-on-surface/50">Genetic ID</span>
-              <span class="text-[11px] text-on-surface/80 font-medium text-right font-mono">{sku}</span>
-            </div>
-            {snake.sex && (
-              <div class="flex justify-between items-baseline py-3 [&:not(:last-child)]:border-b border-outline-variant/10">
-                <span class="text-[11px] text-on-surface/50">Sex</span>
-                <span class="text-[11px] text-on-surface/80 font-medium text-right capitalize">{snake.sex}</span>
-              </div>
-            )}
-            {snake.hatchDate && (
-              <div class="flex justify-between items-baseline py-3 [&:not(:last-child)]:border-b border-outline-variant/10">
-                <span class="text-[11px] text-on-surface/50">Hatch Date</span>
-                <span class="text-[11px] text-on-surface/80 font-medium text-right">
-                  {new Date(snake.hatchDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </span>
-              </div>
-            )}
-            {snake.weightGrams && (
-              <div class="flex justify-between items-baseline py-3 [&:not(:last-child)]:border-b border-outline-variant/10">
-                <span class="text-[11px] text-on-surface/50">Weight</span>
-                <span class="text-[11px] text-on-surface/80 font-medium text-right">{snake.weightGrams}g</span>
-              </div>
-            )}
-          </div>
         </div>
 
-        <!-- CTA stack -->
-        <div class="flex flex-col gap-2">
-          {displayStatus === 'available' && (
-            <a href={`mailto:info@bcexotix.com?subject=Reserve: ${snake.name}`}
-               class="block bg-tertiary text-on-tertiary text-[11px] font-bold uppercase tracking-[1.5px] py-3.5 px-4 rounded-md text-center">
-              Reserve This Specimen
-            </a>
-          )}
-          {displayStatus === 'reserved' && (
-            <div class="border border-outline-variant/40 text-on-surface/60 text-[11px] font-semibold uppercase tracking-[1px] py-3 px-4 rounded-md text-center">
-              Reserved — Email to Inquire
+        <div>
+          {sent && (
+            <div role="status" class="mb-5 rounded-md bg-secondary-container px-4 py-3 text-sm text-secondary">
+              Thanks—your inquiry was received.
             </div>
           )}
-          {displayStatus === 'sold' && (
-            <div class="border border-outline-variant/20 text-on-surface/30 text-[11px] uppercase tracking-[1px] py-3 px-4 rounded-md text-center cursor-not-allowed">
-              This Specimen Has Found a Home
+          {inquiryResult?.error && !isInputError(inquiryResult.error) && (
+            <div role="alert" class="mb-5 rounded-md bg-danger-container px-4 py-3 text-sm text-danger">
+              {inquiryResult.error.message}
             </div>
           )}
-          <a href={`mailto:info@bcexotix.com?subject=Inquiry: ${snake.name}`}
-             class="block border border-outline-variant/30 text-on-surface/60 text-[11px] font-semibold uppercase tracking-[1px] py-3 px-4 rounded-md text-center">
-            Email Inquiry
-          </a>
-          <p class="text-[10px] text-on-surface/30 text-center mt-1">Secure shipping available via FedEx Overnight Priority</p>
+          <form method="POST" action={actions.submitInquiry} class="grid gap-5">
+            <input type="hidden" name="snakeId" value={specimen.id} />
+            <div class="absolute -left-[10000px]" aria-hidden="true">
+              <label for="website">Website</label>
+              <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+            <div class="grid gap-5 sm:grid-cols-2">
+              <FormField label="Your name" name="name" required error={inquiryErrors.name}>
+                <Input name="name" required error={inquiryErrors.name} autocomplete="name" />
+              </FormField>
+              <FormField label="Email address" name="email" required error={inquiryErrors.email}>
+                <Input name="email" type="email" required error={inquiryErrors.email} autocomplete="email" />
+              </FormField>
+            </div>
+            <FormField label="Question" name="message" required error={inquiryErrors.message}>
+              <textarea
+                id="message"
+                name="message"
+                rows="5"
+                required
+                class="field-control resize-y"
+                aria-invalid={inquiryErrors.message ? 'true' : undefined}
+                aria-describedby={inquiryErrors.message ? 'message-error' : undefined}
+                placeholder="What would you like to know about this specimen?"
+              ></textarea>
+            </FormField>
+            <Button type="submit" class="w-full sm:w-auto">
+              Send inquiry
+            </Button>
+          </form>
         </div>
       </div>
-
-      <!-- Genotype Breakdown card (hidden if no traits) -->
-      {traits.length > 0 && (
-        <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-6">
-          <p class="flex items-center gap-2 text-[9px] uppercase tracking-[2px] text-primary font-semibold mb-3">
-            <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
-            Genotype Breakdown
-          </p>
-          <div class="flex flex-wrap gap-2">
-            {traits.map(t => <Chip type={t.type}>{t.label}</Chip>)}
-          </div>
-        </div>
-      )}
-
-    </div>
-  </div>
-
-  <!-- Below-fold cards -->
-  <div class="px-12 pt-6 pb-10 flex flex-col gap-4">
-
-    {snake.personality && (
-      <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-6">
-        <p class="flex items-center gap-2 text-[9px] uppercase tracking-[2px] text-primary font-semibold mb-3">
-          <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
-          Personality & Temperament
-        </p>
-        <p class="text-sm text-on-surface/60 leading-relaxed mt-3">{snake.personality}</p>
-      </div>
-    )}
-
-    {hasHealth && (
-      <div class="bg-surface-container-low rounded-lg border border-outline-variant/10 p-6">
-        <p class="flex items-center gap-2 text-[9px] uppercase tracking-[2px] text-primary font-semibold mb-3">
-          <span class="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0"></span>
-          Health & Feeding Habits
-        </p>
-        {snake.feedingNotes && (
-          <p class="text-sm text-on-surface/60 leading-relaxed mt-3">{snake.feedingNotes}</p>
-        )}
-        {hasStats && (
-          <div class="grid grid-cols-4 border-t border-outline-variant/10 mt-5 pt-5">
-            {snake.diet && (
-              <div class="flex flex-col gap-1.5">
-                <span class="text-[9px] text-on-surface/50 uppercase tracking-[1.5px]">Diet</span>
-                <span class="text-sm text-on-surface/80 font-medium">{snake.diet}</span>
-              </div>
-            )}
-            {snake.shedFrequency && (
-              <div class="flex flex-col gap-1.5">
-                <span class="text-[9px] text-on-surface/50 uppercase tracking-[1.5px]">Shed Frequency</span>
-                <span class="text-sm text-on-surface/80 font-medium">{snake.shedFrequency}</span>
-              </div>
-            )}
-            {snake.temperature && (
-              <div class="flex flex-col gap-1.5">
-                <span class="text-[9px] text-on-surface/50 uppercase tracking-[1.5px]">Temperature</span>
-                <span class="text-sm text-on-surface/80 font-medium">{snake.temperature}</span>
-              </div>
-            )}
-            {snake.humidity && (
-              <div class="flex flex-col gap-1.5">
-                <span class="text-[9px] text-on-surface/50 uppercase tracking-[1.5px]">Humidity</span>
-                <span class="text-sm text-on-surface/80 font-medium">{snake.humidity}</span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    )}
-
-    {snake.complementaryGenetics && (
-      <ComplementaryGenetics server:defer geneticsText={snake.complementaryGenetics} />
-    )}
-
-  </div>
+    </section>
+  </article>
 
   <Footer slot="footer" />
 </BaseLayout>

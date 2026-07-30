@@ -1,0 +1,264 @@
+---
+import type { Snake } from '../../db/schema';
+import Button from '../ui/Button.astro';
+import FormField from '../ui/FormField.astro';
+import Input from '../ui/Input.astro';
+import { getSpecimenStatus } from '../../lib/specimens';
+
+interface Props {
+  action: string;
+  mode: 'create' | 'edit';
+  specimen?: Snake;
+  fieldErrors?: Record<string, string[] | undefined>;
+  restoreDraft?: boolean;
+}
+
+const {
+  action,
+  mode,
+  specimen,
+  fieldErrors = {},
+  restoreDraft = false,
+} = Astro.props;
+const status = specimen ? getSpecimenStatus(specimen) : 'available';
+const priceDollars = specimen ? (specimen.priceInCents / 100).toFixed(2) : '0.00';
+const value = (field: keyof Snake) => {
+  const current = specimen?.[field];
+  return current === null || current === undefined ? '' : String(current);
+};
+---
+
+<form
+  id="specimen-form"
+  method="POST"
+  action={action}
+  class="space-y-6"
+  data-restore-draft={restoreDraft ? 'true' : undefined}
+>
+  {specimen && <input type="hidden" name="id" value={specimen.id} />}
+
+  <section class="surface-panel p-5 sm:p-7">
+    <p class="eyebrow">Identity</p>
+    <div class="mt-5 grid gap-5 sm:grid-cols-2">
+      <FormField label="Display name" name="name" required error={fieldErrors.name}>
+        <Input name="name" value={value('name')} required error={fieldErrors.name} placeholder="e.g. Juniper" />
+      </FormField>
+      <FormField label="URL slug" name="slug" required error={fieldErrors.slug} hint="Lowercase words and hyphens only.">
+        <Input name="slug" value={value('slug')} required error={fieldErrors.slug} placeholder="juniper-ball-python" />
+      </FormField>
+      <FormField label="Species" name="species" required error={fieldErrors.species}>
+        <Input name="species" value={value('species')} required error={fieldErrors.species} placeholder="Ball python" />
+      </FormField>
+      <FormField label="Sex" name="sex" error={fieldErrors.sex}>
+        <select
+          id="sex"
+          name="sex"
+          class="field-control"
+          aria-invalid={fieldErrors.sex ? 'true' : undefined}
+          aria-describedby={fieldErrors.sex ? 'sex-error' : undefined}
+        >
+          <option value="unknown" selected={!specimen?.sex}>Unknown / not recorded</option>
+          <option value="male" selected={specimen?.sex === 'male'}>Male</option>
+          <option value="female" selected={specimen?.sex === 'female'}>Female</option>
+        </select>
+      </FormField>
+      <FormField label="Hatch date" name="hatchDate" error={fieldErrors.hatchDate}>
+        <Input name="hatchDate" type="date" value={value('hatchDate')} error={fieldErrors.hatchDate} />
+      </FormField>
+      <FormField label="Weight (grams)" name="weightGrams" error={fieldErrors.weightGrams}>
+        <Input name="weightGrams" type="number" min="0" step="1" value={value('weightGrams')} error={fieldErrors.weightGrams} />
+      </FormField>
+    </div>
+  </section>
+
+  <section class="surface-panel p-5 sm:p-7">
+    <p class="eyebrow">Listing</p>
+    <div class="mt-5 grid gap-5 sm:grid-cols-2">
+      <FormField label="Availability status" name="status" required error={fieldErrors.status}>
+        <select
+          id="status"
+          name="status"
+          class="field-control"
+          required
+          aria-invalid={fieldErrors.status ? 'true' : undefined}
+          aria-describedby={fieldErrors.status ? 'status-error' : undefined}
+        >
+          <option value="available" selected={status === 'available'}>Available</option>
+          <option value="reserved" selected={status === 'reserved'}>Reserved</option>
+          <option value="sold" selected={status === 'sold'}>Placed / sold</option>
+        </select>
+      </FormField>
+      <FormField label="Price (CAD)" name="priceDollars" error={fieldErrors.priceDollars} hint="Enter dollars, not cents. Leave at 0 for “Inquire for price.”">
+        <Input
+          name="priceDollars"
+          type="number"
+          min="0"
+          step="0.01"
+          value={priceDollars}
+          error={fieldErrors.priceDollars}
+        />
+      </FormField>
+      <div class="sm:col-span-2">
+        <FormField label="Description" name="description" error={fieldErrors.description} hint="A short, factual introduction shown on the specimen page.">
+          <textarea
+            id="description"
+            name="description"
+            rows="5"
+            class="field-control resize-y"
+            aria-invalid={fieldErrors.description ? 'true' : undefined}
+            aria-describedby={fieldErrors.description ? 'description-error' : undefined}
+          >{value('description')}</textarea>
+        </FormField>
+      </div>
+      <div class="sm:col-span-2">
+        <FormField label="Primary image key" name="primaryImageKey" error={fieldErrors.primaryImageKey}>
+          <Input
+            name="primaryImageKey"
+            value={value('primaryImageKey')}
+            error={fieldErrors.primaryImageKey}
+            placeholder="snakes/…-photo.webp"
+          />
+        </FormField>
+        <a href="/admin/media" class="mt-2 inline-flex text-xs font-semibold text-primary hover:text-primary/80">
+          Upload an image and copy its key
+        </a>
+      </div>
+      <label class="flex min-h-16 items-center justify-between gap-4 rounded-md bg-surface-container px-4 py-3 sm:col-span-2">
+        <span>
+          <span class="block text-sm font-semibold text-on-surface">Feature on the home page</span>
+          <span class="mt-1 block text-xs text-on-surface-variant">Use only for specimens with a representative photo.</span>
+        </span>
+        <input
+          type="checkbox"
+          name="featured"
+          value="true"
+          checked={specimen?.featured}
+          class="h-5 w-5 accent-primary"
+        />
+      </label>
+    </div>
+  </section>
+
+  <section class="surface-panel p-5 sm:p-7">
+    <p class="eyebrow">Temperament & care</p>
+    <div class="mt-5 grid gap-5 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <FormField label="Personality notes" name="personality" error={fieldErrors.personality}>
+          <textarea
+            id="personality"
+            name="personality"
+            rows="4"
+            class="field-control resize-y"
+            aria-invalid={fieldErrors.personality ? 'true' : undefined}
+            aria-describedby={fieldErrors.personality ? 'personality-error' : undefined}
+          >{value('personality')}</textarea>
+        </FormField>
+      </div>
+      <div class="sm:col-span-2">
+        <FormField label="Feeding notes" name="feedingNotes" error={fieldErrors.feedingNotes}>
+          <textarea
+            id="feedingNotes"
+            name="feedingNotes"
+            rows="3"
+            class="field-control resize-y"
+            aria-invalid={fieldErrors.feedingNotes ? 'true' : undefined}
+            aria-describedby={fieldErrors.feedingNotes ? 'feedingNotes-error' : undefined}
+          >{value('feedingNotes')}</textarea>
+        </FormField>
+      </div>
+      <FormField label="Current diet" name="diet" error={fieldErrors.diet}>
+        <Input name="diet" value={value('diet')} error={fieldErrors.diet} placeholder="Frozen/thawed rats" />
+      </FormField>
+      <FormField label="Shed frequency" name="shedFrequency" error={fieldErrors.shedFrequency}>
+        <Input name="shedFrequency" value={value('shedFrequency')} error={fieldErrors.shedFrequency} placeholder="Every 4–6 weeks" />
+      </FormField>
+      <FormField label="Temperature notes" name="temperature" error={fieldErrors.temperature}>
+        <Input name="temperature" value={value('temperature')} error={fieldErrors.temperature} />
+      </FormField>
+      <FormField label="Humidity notes" name="humidity" error={fieldErrors.humidity}>
+        <Input name="humidity" value={value('humidity')} error={fieldErrors.humidity} />
+      </FormField>
+      <div class="sm:col-span-2">
+        <FormField label="Complementary specimen slugs" name="complementaryGenetics" error={fieldErrors.complementaryGenetics} hint="Optional, comma-separated specimen slugs.">
+          <textarea
+            id="complementaryGenetics"
+            name="complementaryGenetics"
+            rows="3"
+            class="field-control resize-y"
+            aria-invalid={fieldErrors.complementaryGenetics ? 'true' : undefined}
+            aria-describedby={fieldErrors.complementaryGenetics ? 'complementaryGenetics-error' : undefined}
+          >{value('complementaryGenetics')}</textarea>
+        </FormField>
+      </div>
+    </div>
+  </section>
+
+  <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+    <Button href="/admin/snakes" variant="ghost">Cancel</Button>
+    <Button type="submit">{mode === 'create' ? 'Add specimen' : 'Save changes'}</Button>
+  </div>
+</form>
+
+{mode === 'create' && (
+  <script>
+    const nameInput = document.querySelector<HTMLInputElement>('#name');
+    const slugInput = document.querySelector<HTMLInputElement>('#slug');
+    let slugWasEdited = false;
+    slugInput?.addEventListener('input', () => { slugWasEdited = true; });
+    nameInput?.addEventListener('input', () => {
+      if (!slugInput || slugWasEdited) return;
+      slugInput.value = nameInput.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+    });
+  </script>
+)}
+
+<script>
+  const specimenForm = document.querySelector<HTMLFormElement>('#specimen-form');
+
+  if (specimenForm) {
+    const draftKey = `bc-exotix:specimen-form:${window.location.pathname}`;
+
+    if (specimenForm.dataset.restoreDraft === 'true') {
+      try {
+        const draft = JSON.parse(sessionStorage.getItem(draftKey) ?? '{}') as Record<string, string>;
+        for (const [name, value] of Object.entries(draft)) {
+          const control = specimenForm.elements.namedItem(name);
+          if (control instanceof HTMLInputElement && control.type === 'checkbox') {
+            control.checked = value === 'true';
+          } else if (
+            control instanceof HTMLInputElement
+            || control instanceof HTMLSelectElement
+            || control instanceof HTMLTextAreaElement
+          ) {
+            control.value = value;
+          }
+        }
+      } catch {
+        sessionStorage.removeItem(draftKey);
+      }
+    } else {
+      sessionStorage.removeItem(draftKey);
+    }
+
+    specimenForm.addEventListener('submit', () => {
+      const draft: Record<string, string> = {};
+      for (const control of specimenForm.elements) {
+        if (
+          (control instanceof HTMLInputElement
+            || control instanceof HTMLSelectElement
+            || control instanceof HTMLTextAreaElement)
+          && control.name
+          && control.type !== 'hidden'
+        ) {
+          draft[control.name] = control instanceof HTMLInputElement && control.type === 'checkbox'
+            ? String(control.checked)
+            : control.value;
+        }
+      }
+      sessionStorage.setItem(draftKey, JSON.stringify(draft));
+    });
+  }
+</script>

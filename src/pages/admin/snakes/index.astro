@@ -1,173 +1,126 @@
 ---
-// src/pages/admin/snakes/index.astro
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import Chip from '../../../components/ui/Chip.astro';
-import { createDb } from '../../../db/client';
-import { snakes, traitChips } from '../../../db/schema';
-import { eq, desc } from 'drizzle-orm';
+import Badge from '../../../components/ui/Badge.astro';
+import Button from '../../../components/ui/Button.astro';
 import { actions } from 'astro:actions';
-
 import { env } from 'cloudflare:workers';
-import type { D1Database } from '@cloudflare/workers-types';
+import { createDb } from '../../../db/client';
+import { listSpecimens } from '../../../db/specimens';
+import { formatPrice, getSpecimenStatus, getStatusLabel, isDemoSpecimen, specimenImageAlt, specimenImageUrl } from '../../../lib/specimens';
 
-const db = createDb((env as unknown as { DB: D1Database }).DB);
-void Astro.getActionResult(actions.deleteSnake);
-const allSnakes = await db.select().from(snakes).orderBy(desc(snakes.createdAt));
-const snakesWithTraits = await Promise.all(
-  allSnakes.map(async s => ({
-    ...s,
-    traits: await db.select().from(traitChips).where(eq(traitChips.snakeId, s.id)),
-  }))
-);
+const db = createDb((env as unknown as Env).DB);
+const deleteResult = Astro.getActionResult(actions.deleteSnake);
+if (deleteResult && !deleteResult.error) {
+  return Astro.redirect('/admin/snakes?removed=1', 303);
+}
+
+const specimens = await listSpecimens(db);
+const removed = Astro.url.searchParams.has('removed');
 ---
-<AdminLayout title="Inventory">
+
+<AdminLayout title="Specimens">
   <div slot="header-actions">
-    <a href="/admin/snakes/new" class="bg-primary text-on-primary font-bold text-sm px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">
-      + New Specimen
-    </a>
+    <Button href="/admin/snakes/new" size="sm">Add specimen</Button>
   </div>
 
-  <!-- Specimen Registry table card -->
-  <div class="bg-surface-container-low rounded-lg border border-outline-variant/5 overflow-hidden">
-
-    <!-- Table header bar -->
-    <div class="flex items-center justify-between px-6 py-5 border-b border-outline-variant/10">
-      <h3 class="font-noto-serif text-on-surface font-bold text-xl">Specimen Registry</h3>
-      <p class="text-[10px] uppercase tracking-[1px] text-on-surface/60">{snakesWithTraits.length} total</p>
+  <div class="mx-auto max-w-7xl">
+    <div class="mb-8">
+      <p class="eyebrow">Collection management</p>
+      <h2 class="mt-3 font-noto-serif text-4xl font-bold text-on-surface">Specimen registry</h2>
+      <p class="mt-3 text-on-surface-variant">
+        {specimens.length} {specimens.length === 1 ? 'specimen' : 'specimens'} recorded.
+      </p>
     </div>
 
-    <!-- Table -->
-    <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead>
-          <tr class="bg-surface-container">
-            <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Specimen</th>
-            <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Species</th>
-            <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Morph Details</th>
-            <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Status</th>
-            <th class="text-left px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Price</th>
-            <th class="text-right px-6 py-4 text-[10px] uppercase tracking-[1.5px] text-on-surface/80 font-bold">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {snakesWithTraits.map(snake => (
-            <tr class="even:bg-surface-container hover:bg-surface-container-high/40 transition-colors">
+    {removed && (
+      <div role="status" class="mb-6 rounded-md bg-secondary-container px-4 py-3 text-sm text-secondary">
+        Specimen removed.
+      </div>
+    )}
+    {deleteResult?.error && (
+      <div role="alert" class="mb-6 rounded-md bg-danger-container px-4 py-3 text-sm text-danger">
+        {deleteResult.error.message}
+      </div>
+    )}
 
-              <!-- SPECIMEN -->
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
-                    {snake.primaryImageKey ? (
-                      <img
-                        src={`/api/r2/image?key=${encodeURIComponent(snake.primaryImageKey)}`}
-                        alt={snake.name}
-                        class="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <img
-                        src="/placeholder-snake.svg"
-                        alt=""
-                        class="w-full h-full object-cover opacity-40"
-                      />
-                    )}
-                  </div>
-                  <div class="flex flex-col gap-1">
-                    <span class="text-sm font-medium text-on-surface">{snake.name}</span>
-                    {snake.featured && (
-                      <span class="bg-tertiary/20 text-tertiary text-[9px] font-bold uppercase tracking-[0.45px] px-1.5 py-0.5 rounded-sm self-start">
-                        Featured
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </td>
-
-              <!-- SPECIES -->
-              <td class="px-6 py-4">
-                <span class="text-sm text-on-surface/70">{snake.species}</span>
-              </td>
-
-              <!-- MORPH DETAILS -->
-              <td class="px-6 py-4">
-                <div class="flex flex-wrap gap-1.5">
-                  {snake.traits.map(trait => (
-                    <Chip type={trait.type}>{trait.label}</Chip>
-                  ))}
-                  {snake.traits.length === 0 && (
-                    <span class="text-xs text-on-surface/40 italic">—</span>
-                  )}
-                </div>
-              </td>
-
-              <!-- STATUS -->
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <span class={`w-2 h-2 rounded-full flex-shrink-0 ${snake.available ? 'bg-primary' : 'bg-on-surface/30'}`}></span>
-                  <span class="text-xs font-medium uppercase tracking-wide text-on-surface/70">
-                    {snake.available ? 'Available' : 'Sold'}
-                  </span>
-                </div>
-              </td>
-
-              <!-- PRICE -->
-              <td class="px-6 py-4">
-                {snake.priceInCents > 0 ? (
-                  <span class="font-noto-serif text-tertiary text-sm font-bold">
-                    ${(snake.priceInCents / 100).toLocaleString('en-US')}
-                  </span>
-                ) : (
-                  <span class="text-on-surface/40 text-sm">—</span>
-                )}
-              </td>
-
-              <!-- ACTIONS -->
-              <td class="px-6 py-4">
-                <div class="flex items-center justify-end gap-1">
-                  <a
-                    href={`/admin/snakes/${snake.id}/edit`}
-                    class="p-1.5 rounded text-on-surface/50 hover:text-on-surface hover:bg-surface-container-high transition-colors"
-                    aria-label={`Edit ${snake.name}`}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                  </a>
-                  <form method="POST" action={actions.deleteSnake}>
-                    <input type="hidden" name="id" value={snake.id} />
-                    <button
-                      type="submit"
-                      class="p-1.5 rounded text-on-surface/50 hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                      aria-label={`Delete ${snake.name}`}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                        <path d="M10 11v6"/>
-                        <path d="M14 11v6"/>
-                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                      </svg>
-                    </button>
-                  </form>
-                </div>
-              </td>
-
-            </tr>
-          ))}
-          {snakesWithTraits.length === 0 && (
-            <tr>
-              <td colspan="6" class="px-6 py-12 text-center text-on-surface/40 text-sm">No specimens yet.</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Table footer -->
-    <div class="bg-surface-container px-6 py-4">
-      <p class="text-[10px] uppercase tracking-[1px] text-on-surface/60">Showing {snakesWithTraits.length} specimens</p>
-    </div>
-
+    {specimens.length === 0 ? (
+      <section class="surface-panel flex min-h-80 flex-col items-center justify-center p-8 text-center">
+        <img src="/placeholder-snake.svg" alt="" class="h-24 w-24 opacity-40" />
+        <h3 class="mt-5 font-noto-serif text-2xl font-bold text-on-surface">Start your collection</h3>
+        <p class="mt-2 max-w-md text-sm text-on-surface-variant">
+          Add the first specimen and its public page will be ready with a neutral image placeholder.
+        </p>
+        <Button href="/admin/snakes/new" class="mt-6">Add first specimen</Button>
+      </section>
+    ) : (
+      <div class="overflow-hidden rounded-lg bg-surface-container-low">
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[760px]">
+            <thead class="bg-surface-container">
+              <tr>
+                <th scope="col" class="px-5 py-4 text-left text-xs font-semibold text-on-surface-variant">Specimen</th>
+                <th scope="col" class="px-5 py-4 text-left text-xs font-semibold text-on-surface-variant">Status</th>
+                <th scope="col" class="px-5 py-4 text-left text-xs font-semibold text-on-surface-variant">Traits</th>
+                <th scope="col" class="px-5 py-4 text-left text-xs font-semibold text-on-surface-variant">Price</th>
+                <th scope="col" class="px-5 py-4 text-right text-xs font-semibold text-on-surface-variant">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {specimens.map((specimen) => {
+                const status = getSpecimenStatus(specimen);
+                return (
+                  <tr class="odd:bg-surface-container-low even:bg-surface-container">
+                    <td class="px-5 py-4">
+                      <div class="flex items-center gap-3">
+                        <img
+                          src={specimenImageUrl(specimen)}
+                          alt={specimenImageAlt(specimen)}
+                          class="h-12 w-12 rounded-md bg-surface-container-lowest object-cover"
+                        />
+                        <div>
+                          <div class="flex flex-wrap items-center gap-2">
+                            <a href={`/admin/snakes/${specimen.id}/edit`} class="font-semibold text-on-surface hover:text-primary">
+                              {specimen.name}
+                            </a>
+                            {isDemoSpecimen(specimen) && <Badge variant="demo">Demo</Badge>}
+                          </div>
+                          <p class="mt-1 text-xs text-on-surface-variant">{specimen.species}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-5 py-4"><Badge variant={status}>{getStatusLabel(status)}</Badge></td>
+                    <td class="px-5 py-4 text-sm text-on-surface-variant">
+                      {specimen.traits.length ? specimen.traits.map((trait) => trait.label).join(', ') : 'Not recorded'}
+                    </td>
+                    <td class="px-5 py-4 text-sm text-on-surface">{formatPrice(specimen.priceInCents) ?? 'Inquire'}</td>
+                    <td class="px-5 py-4">
+                      <div class="flex items-center justify-end gap-2">
+                        <Button href={`/snakes/${specimen.slug}`} variant="ghost" size="sm">View</Button>
+                        <Button href={`/admin/snakes/${specimen.id}/edit`} variant="secondary" size="sm">Edit</Button>
+                        <form method="POST" action={actions.deleteSnake} data-confirm-delete>
+                          <input type="hidden" name="id" value={specimen.id} />
+                          <input type="hidden" name="confirm" value="delete" />
+                          <Button type="submit" variant="ghost" size="sm" ariaLabel={`Remove ${specimen.name}`}>Remove</Button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
   </div>
 
+  <script>
+    document.querySelectorAll<HTMLFormElement>('[data-confirm-delete]').forEach((form) => {
+      form.addEventListener('submit', (event) => {
+        if (!window.confirm('Permanently remove this specimen? This cannot be undone.')) {
+          event.preventDefault();
+        }
+      });
+    });
+  </script>
 </AdminLayout>

@@ -6,7 +6,7 @@
   "assets": { "directory": "./dist/client" },
   "d1_databases": [
     {
-      "binding": "bc_exotix_db",
+      "binding": "DB",
       "database_name": "bc-exotix-db",
       "database_id": "211c0a2a-e414-4e59-b819-5db21a605e7c",
       "migrations_dir": "src/db/migrations"
@@ -15,7 +15,17 @@
   "r2_buckets": [
     {
       "bucket_name": "bc-exotix-assets",
-      "binding": "bc_exotix_assets"
+      "binding": "ASSETS_BUCKET"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "INQUIRY_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 3,
+        "period": 60
+      }
     }
   ],
   "vars": {

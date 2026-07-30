@@ -1,14 +1,19 @@
 // src/middleware.ts
-import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
+import { clerkMiddleware } from '@clerk/astro/server';
+import { isAdminRole } from './lib/auth';
 
-const isAdminRoute = createRouteMatcher(['/admin(.*)']);
-
-export const onRequest = clerkMiddleware((auth, context, next) => {
-  if (isAdminRoute(context.request)) {
+export const onRequest = clerkMiddleware(async (auth, context, next) => {
+  if (context.url.pathname.startsWith('/admin')) {
     const authObj = auth();
     if (!authObj.userId) {
       return authObj.redirectToSignIn();
     }
+
+    const user = await context.locals.currentUser();
+    if (!isAdminRole(user)) {
+      return context.redirect('/access-denied');
+    }
   }
+
   return next();
 });

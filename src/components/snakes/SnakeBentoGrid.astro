@@ -1,49 +1,23 @@
 ---
-// src/components/snakes/SnakeBentoGrid.astro
 import SnakeBentoCard from './SnakeBentoCard.astro';
 import SnakeGrid from './SnakeGrid.astro';
-import type { Snake, TraitChip } from '../../db/schema';
+import type { SpecimenWithTraits } from '../../db/specimens';
 
 interface Props {
-  snakes: (Snake & { traits?: TraitChip[] })[];
+  snakes: SpecimenWithTraits[];
 }
 
-// Use `snakeList` to avoid shadowing the `snakes` DB table name if ever imported
-const { snakes: snakeList } = Astro.props;
-
-const [large, small1, small2, horizontal] = snakeList;
-
-// Slot-specific demo fallback images (used when snake has no R2 image)
-const demoImages = [
-  '/demo/snake-palmetto.jpg',
-  '/demo/snake-morph1.jpg',
-  '/demo/snake-morph2.jpg',
-  '/demo/snake-morph3.jpg',
-];
+const { snakes } = Astro.props;
+const [large, small, horizontal, fourth] = snakes;
 ---
 
-{snakeList.length < 3
-  ? <SnakeGrid snakes={snakeList} />
-  : (
-    <div class="grid grid-cols-12 gap-6">
-      <!-- Row 1: large (8 cols) + small (4 cols) -->
-      <div class="col-span-12 lg:col-span-8 min-h-[500px]">
-        <SnakeBentoCard snake={large} variant="large" fallbackImage={demoImages[0]} />
-      </div>
-      <div class="col-span-12 lg:col-span-4">
-        <SnakeBentoCard snake={small1} variant="small" fallbackImage={demoImages[1]} />
-      </div>
-      <!-- Row 2: small (4 cols) + horizontal (8 cols) -->
-      {small2 && (
-        <div class="col-span-12 lg:col-span-4">
-          <SnakeBentoCard snake={small2} variant="small" fallbackImage={demoImages[2]} />
-        </div>
-      )}
-      {horizontal && (
-        <div class="col-span-12 lg:col-span-8 min-h-[400px]">
-          <SnakeBentoCard snake={horizontal} variant="horizontal" fallbackImage={demoImages[3]} />
-        </div>
-      )}
-    </div>
-  )
-}
+{snakes.length < 3 ? (
+  <SnakeGrid snakes={snakes} />
+) : (
+  <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+    <div class="lg:col-span-8"><SnakeBentoCard snake={large} variant="large" /></div>
+    <div class="lg:col-span-4"><SnakeBentoCard snake={small} variant="small" /></div>
+    <div class="lg:col-span-7"><SnakeBentoCard snake={horizontal} variant="horizontal" /></div>
+    {fourth && <div class="lg:col-span-5"><SnakeBentoCard snake={fourth} variant="small" /></div>}
+  </div>
+)}

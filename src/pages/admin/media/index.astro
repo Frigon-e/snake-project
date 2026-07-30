@@ -1,81 +1,81 @@
 ---
-// src/pages/admin/media/index.astro
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { r2Key } from '../../../lib/r2';
-import { env } from 'cloudflare:workers';
-import type { R2Bucket } from '@cloudflare/workers-types';
+import Button from '../../../components/ui/Button.astro';
+import { actions, isInputError } from 'astro:actions';
 
-if (Astro.request.method === 'POST') {
-  const formData = await Astro.request.formData();
-  const file = formData.get('file') as File | null;
-  if (file && file.size > 0) {
-    const key = r2Key(file.name);
-    await (env as unknown as { ASSETS_BUCKET: R2Bucket }).ASSETS_BUCKET.put(key, await file.arrayBuffer(), {
-      httpMetadata: { contentType: file.type },
-    });
-    return Astro.redirect(`/admin/media?uploaded=${encodeURIComponent(key)}`);
-  }
+const result = Astro.getActionResult(actions.uploadMedia);
+if (result && !result.error) {
+  return Astro.redirect(`/admin/media?uploaded=${encodeURIComponent(result.data.key)}`, 303);
 }
-
-const uploadedKey = new URL(Astro.request.url).searchParams.get('uploaded');
+const uploadedKey = Astro.url.searchParams.get('uploaded');
+const fieldErrors = result?.error && isInputError(result.error) ? result.error.fields : {};
 ---
+
 <AdminLayout title="Media">
-  <div class="mb-8">
-    <p class="text-primary text-[10px] uppercase tracking-[3px] font-bold mb-2">Asset Management</p>
-    <h1 class="font-noto-serif text-on-surface text-4xl font-bold tracking-tight mb-2">Media Library</h1>
-    <p class="text-on-surface/60 text-sm">Upload and manage images for your specimen collection.</p>
+  <div class="mx-auto max-w-4xl">
+    <div class="mb-8">
+      <p class="eyebrow">Image storage</p>
+      <h2 class="mt-3 font-noto-serif text-4xl font-bold text-on-surface">Specimen media</h2>
+      <p class="mt-3 text-on-surface-variant">
+        Upload one representative photo, then paste its key into a specimen record.
+      </p>
+    </div>
+
+    {uploadedKey && (
+      <section class="surface-panel mb-6 p-5 sm:p-7" aria-labelledby="uploaded-heading">
+        <p class="eyebrow">Upload complete</p>
+        <h3 id="uploaded-heading" class="mt-2 font-noto-serif text-2xl font-bold text-on-surface">Image ready to use</h3>
+        <img
+          src={`/api/r2/image?key=${encodeURIComponent(uploadedKey)}`}
+          alt="Newly uploaded specimen"
+          class="mt-5 aspect-video w-full max-w-lg rounded-md bg-surface-container-lowest object-contain"
+        />
+        <label for="uploaded-key" class="field-label mt-5">R2 image key</label>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <input id="uploaded-key" readonly value={uploadedKey} class="field-control font-mono text-xs" />
+          <Button type="button" variant="secondary" id="copy-key">Copy key</Button>
+        </div>
+      </section>
+    )}
+
+    {result?.error && !isInputError(result.error) && (
+      <div role="alert" class="mb-6 rounded-md bg-danger-container px-4 py-3 text-sm text-danger">
+        {result.error.message}
+      </div>
+    )}
+
+    <section class="surface-panel p-5 sm:p-7" aria-labelledby="upload-heading">
+      <h3 id="upload-heading" class="font-noto-serif text-2xl font-bold text-on-surface">Upload an image</h3>
+      <p class="mt-2 text-sm text-on-surface-variant">JPG, PNG, or WebP up to 10 MB.</p>
+      <form method="POST" enctype="multipart/form-data" action={actions.uploadMedia} class="mt-6">
+        <label for="file" class="field-label">Choose image</label>
+        <input
+          id="file"
+          type="file"
+          name="file"
+          accept="image/jpeg,image/png,image/webp"
+          required
+          class="field-control file:mr-4 file:rounded-md file:border-0 file:bg-surface-container-high file:px-3 file:py-1 file:text-on-surface"
+          aria-invalid={fieldErrors.file ? 'true' : undefined}
+          aria-describedby={fieldErrors.file ? 'file-error' : undefined}
+        />
+        {fieldErrors.file?.[0] && (
+          <p id="file-error" class="mt-1.5 text-xs text-danger">{fieldErrors.file[0]}</p>
+        )}
+        <Button type="submit" class="mt-5 w-full sm:w-auto">Upload image</Button>
+      </form>
+    </section>
   </div>
 
   {uploadedKey && (
-    <div class="bg-surface-container-low rounded-lg p-6 border border-outline-variant/5 mb-8">
-      <div class="aspect-video max-w-sm rounded-sm overflow-hidden mb-4 bg-surface-container-lowest">
-        <img src={`/api/r2/image?key=${encodeURIComponent(uploadedKey)}`} alt="Uploaded image" class="w-full h-full object-contain" />
-      </div>
-      <p class="text-primary text-xs uppercase tracking-[1.2px] font-bold mb-2">Upload Successful — R2 Key</p>
-      <div class="flex items-center gap-2">
-        <code class="flex-1 bg-surface-container-lowest text-on-surface/60 font-mono text-xs px-3 py-2 rounded-md break-all">{uploadedKey}</code>
-        <button
-          id="copy-key-btn"
-          data-key={uploadedKey}
-          class="shrink-0 text-primary text-xs font-bold uppercase tracking-[1px] hover:text-primary/80 transition-colors px-3 py-2 bg-primary/10 rounded-md"
-        >
-          Copy
-        </button>
-      </div>
-      <script is:inline>
-        const btn = document.getElementById('copy-key-btn');
-        if (btn) {
-          btn.addEventListener('click', () => {
-            const key = btn.getAttribute('data-key') ?? '';
-            navigator.clipboard.writeText(key).then(() => {
-              btn.textContent = 'Copied!';
-              setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
-            });
-          });
-        }
-      </script>
-      <p class="text-on-surface/40 text-xs mt-2">Paste this key into a specimen's Primary Image Key field.</p>
-    </div>
+    <script>
+      const button = document.querySelector<HTMLButtonElement>('#copy-key');
+      const input = document.querySelector<HTMLInputElement>('#uploaded-key');
+      button?.addEventListener('click', async () => {
+        if (!input) return;
+        await navigator.clipboard.writeText(input.value);
+        button.textContent = 'Copied';
+      });
+    </script>
   )}
-
-  <section class="bg-surface-container-low rounded-lg shadow-[0px_0px_0px_1px_rgba(65,72,67,0.1)] p-8">
-    <div class="flex items-center gap-2 mb-6">
-      <p class="text-primary text-xs uppercase tracking-[1.8px] font-normal">Upload Image</p>
-    </div>
-    <form method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
-      <div class="bg-surface-container-lowest rounded-md border border-outline-variant/15 flex items-center justify-between px-4 py-5">
-        <div>
-          <p class="text-on-surface text-xs font-bold uppercase tracking-wide">Select Image</p>
-          <p class="text-on-surface/50 text-[10px]">Max size: 10MB · JPG, PNG, WebP</p>
-        </div>
-        <label for="file-input" class="text-primary text-[10px] uppercase tracking-[1px] font-bold hover:text-primary/80 transition-colors cursor-pointer">
-          Browse
-          <input id="file-input" type="file" name="file" accept="image/*" required class="sr-only" />
-        </label>
-      </div>
-      <button type="submit" class="bg-primary text-on-primary font-bold text-sm px-6 py-3 rounded-md hover:bg-primary/90 transition-colors w-full">
-        Upload Image
-      </button>
-    </form>
-  </section>
 </AdminLayout>

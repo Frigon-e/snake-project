@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import Button from '../components/ui/Button.astro';
+
+Astro.response.status = 404;
+---
+
+<BaseLayout title="Page not found" description="The requested BC Exotix page could not be found.">
+  <Header slot="header" />
+  <section class="page-shell flex min-h-[65svh] items-center justify-center py-20">
+    <div class="surface-panel max-w-xl p-8 text-center sm:p-12">
+      <img src="/placeholder-snake.svg" alt="" class="mx-auto h-24 w-24 opacity-40" />
+      <p class="eyebrow mt-6">404</p>
+      <h1 class="mt-3 font-noto-serif text-4xl font-bold text-on-surface">That page has moved on</h1>
+      <p class="mt-4 text-on-surface-variant">The link may be old, or the specimen may no longer be listed.</p>
+      <Button href="/snakes" class="mt-8">Browse the collection</Button>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>
